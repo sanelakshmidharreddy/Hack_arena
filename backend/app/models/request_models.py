@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Optional
 from pydantic import BaseModel, Field, field_validator
 
 AllowedLanguages = Literal["te", "ta", "hi", "en"]
@@ -24,3 +24,10 @@ class ExplainRequest(BaseModel):
 
 class ResetRequest(BaseModel):
     session_id: str = Field(..., min_length=1, max_length=128)
+
+class TTSRequest(BaseModel):
+    text: str = Field(..., min_length=1, max_length=1500, description="Text to speak")
+    language: AllowedLanguages = Field(default="te", description="Target language")
+    voice_name: Optional[str] = Field(default=None, description="Specific Google Cloud voice name")
+    gender: Optional[str] = Field(default="FEMALE", description="FEMALE or MALE")
+    speed: Optional[float] = Field(default=0.95, ge=0.5, le=1.5, description="Speaking rate")

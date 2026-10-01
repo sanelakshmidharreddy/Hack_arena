@@ -1,29 +1,56 @@
+import logging
 from pathlib import Path
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from app.config import ALLOWED_ORIGINS
+from app.config import ALLOWED_ORIGINS, validate_config, PORT
 from app.routes.api import router as api_router
 from app.models.response_models import HealthResponse
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger("jansakhi")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup validation without logging secrets
+    validate_config()
+    yield
+    logger.info("Jansakhi application shutting down.")
+
 app = FastAPI(
-    title="Digital Guide API",
-    description="AI-powered Digital Guide for rural first-time women users to access government schemes",
-    version="1.0.0"
+    title="Jansakhi - Voice AI Digital Guide API",
+    description="Voice-first AI guide for first-time rural Indian women accessing Sukanya Samriddhi Yojana",
+    version="1.0.0",
+    lifespan=lifespan
 )
 
-# CORS configuration - allows all origins so no FRONTEND_URL is required on Render
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # Permits Vercel frontend, local dev, and custom domains
     allow_credentials=False,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
-# Root Health endpoint required by Cloud Run and tests
+# Security headers middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
+
+# Root Health endpoint required by Google Cloud Run and health checks
 @app.get("/health", response_model=HealthResponse)
 def health_check():
     return HealthResponse(status="ok", version="1.0.0", scheme_loaded=True)
@@ -31,9 +58,10 @@ def health_check():
 # Include API routes
 app.include_router(api_router, prefix="/api")
 
-# Error handler for unexpected exceptions to return friendly message instead of 500 stacktrace
+# Error handler for unexpected exceptions
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled server error: {exc}", exc_info=True)
     return JSONResponse(
         status_code=500,
         content={
@@ -55,4 +83,4 @@ if FRONTEND_DIST:
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=PORT, reload=True)

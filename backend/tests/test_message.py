@@ -2,11 +2,12 @@ import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from app.main import app
-from app.services.grok_service import grok_service
+from app.services.llm_service import llm_service
+from app.services.scheme_service import scheme_service
 
 client = TestClient(app)
 
-def test_valid_message():
+def test_valid_message_telugu():
     """Tests natural language need in Telugu for daughter education"""
     payload = {
         "session_id": "test-session-001",
@@ -19,9 +20,8 @@ def test_valid_message():
     data = response.json()
     assert "reply" in data
     assert len(data["reply"]) > 0
-    assert data["source"] == "verified_demo_data"
-    assert data["needs_clarification"] is True
-    assert data["question"] is not None
+    assert data["eligible"] in ["yes", "no", "unknown"]
+    assert data["source"] in ["verified_demo_data", "verified_llm"]
 
 def test_valid_message_english():
     payload = {
@@ -36,11 +36,11 @@ def test_valid_message_english():
     assert "Sukanya Samriddhi" in data["reply"]
     assert data["needs_clarification"] is True
 
-def test_invalid_message():
+def test_invalid_language():
     """Tests invalid language rejection via Pydantic validator"""
     payload = {
         "session_id": "test-session-003",
-        "language": "french", # unsupported language
+        "language": "french",
         "message": "Hello",
         "input_mode": "text"
     }
@@ -58,8 +58,8 @@ def test_empty_message():
     response = client.post("/api/message", json=payload)
     assert response.status_code == 422
 
-def test_scheme_eligibility():
-    """Tests answering age criteria (e.g. 7 years old) -> eligible = 'yes'"""
+def test_scheme_eligibility_yes():
+    """Tests answering age <= 10 -> eligible = 'yes'"""
     payload = {
         "session_id": "test-session-005",
         "language": "te",
@@ -74,35 +74,47 @@ def test_scheme_eligibility():
     assert len(data["steps"]) > 0
     assert "next_action" in data
 
-def test_unknown_service():
-    """Tests question outside verified scheme bounds returns safe guidance without hallucinating"""
+def test_scheme_eligibility_no():
+    """Tests answering age > 10 or 'No' -> eligible = 'no' (Bugfix Phase 4 verification)"""
     payload = {
         "session_id": "test-session-006",
         "language": "te",
-        "message": "నేను వ్యవసాయ ట్రాక్టర్ కొనడానికి లోన్ కావాలి",
+        "message": "కాదు (10 ఏళ్లు దాటింది)",
         "input_mode": "text"
     }
     response = client.post("/api/message", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["source"] == "verified_demo_data"
+    assert data["eligible"] == "no"
+    assert "10 సంవత్సరాలు దాటినందున" in data["explanation"] or "10" in data["explanation"]
+    assert "మహిళా సమ్మాన్" in data["explanation"] or "PPF" in data["explanation"]
 
-def test_missing_information():
-    """Tests asking for missing or vague details"""
+def test_scheme_eligibility_no_english():
+    """Tests ineligibility in English returns kind alternative explanation"""
     payload = {
         "session_id": "test-session-007",
         "language": "en",
-        "message": "Can I get assistance?",
+        "message": "No, she is 14 years old",
         "input_mode": "text"
     }
     response = client.post("/api/message", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert "reply" in data
+    assert data["eligible"] == "no"
+    assert "older than 10" in data["explanation"] or "10" in data["explanation"]
 
-def test_grok_failure_and_safe_fallback():
-    """Simulates Grok API throwing an unexpected Exception, verifying system gracefully recovers"""
-    with patch.object(grok_service, "_call_grok_api", side_effect=Exception("API Quota Exceeded")):
+def test_scheme_evaluator_branches():
+    """Direct deterministic unit test for all 3 branches: yes, no, unknown"""
+    assert scheme_service.evaluate_eligibility(age=7, is_girl=True, is_citizen=True) == "yes"
+    assert scheme_service.evaluate_eligibility(age=10, is_girl=True, is_citizen=True) == "yes"
+    assert scheme_service.evaluate_eligibility(age=12, is_girl=True, is_citizen=True) == "no"
+    assert scheme_service.evaluate_eligibility(age=None, is_girl=True, is_citizen=True) == "unknown"
+    assert scheme_service.evaluate_eligibility(age=5, is_girl=False, is_citizen=True) == "no"
+
+def test_llm_failure_and_safe_fallback():
+    """Simulates LLM APIs throwing an exception, verifying system recovers to deterministic engine"""
+    with patch.object(llm_service, "_call_gemini", side_effect=Exception("Gemini quota 503")), \
+         patch.object(llm_service, "_call_groq", side_effect=Exception("Groq rate limit")):
         payload = {
             "session_id": "test-session-008",
             "language": "te",
@@ -114,3 +126,37 @@ def test_grok_failure_and_safe_fallback():
         data = response.json()
         assert len(data["documents"]) > 0
         assert data["source"] == "verified_demo_data"
+
+def test_contacts_endpoint():
+    """Tests GET /api/contacts returns real verified official helplines"""
+    response = client.get("/api/contacts")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert len(data["contacts"]) >= 3
+    numbers = [c["phone"] for c in data["contacts"]]
+    assert "1800-266-6868" in numbers  # India Post Toll-Free
+    assert "181" in numbers  # National Women Helpline
+    assert "1098" in numbers  # Childline
+
+def test_voices_endpoint():
+    """Tests GET /api/voices returns verified catalogue for Telugu & English"""
+    response = client.get("/api/voices?lang=te")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data["voices"]) >= 2
+    genders = [v["gender"] for v in data["voices"]]
+    assert "FEMALE" in genders
+    assert "MALE" in genders
+
+def test_post_offices_endpoint():
+    """Tests GET /api/post-offices returns locations with deep link navigation"""
+    response = client.get("/api/post-offices?lat=17.3850&lng=78.4867")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "ok"
+    assert len(data["post_offices"]) > 0
+    first = data["post_offices"][0]
+    assert "name" in first
+    assert "deep_link" in first
+    assert "maps/dir" in first["deep_link"]

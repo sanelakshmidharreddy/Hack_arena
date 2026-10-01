@@ -1,0 +1,89 @@
+{
+  "last_updated": "2024-10-01",
+  "contacts": [
+    {
+      "id": "india_post_customer_care",
+      "name": "India Post Customer Care (Postal Schemes & SSY)",
+      "name_regional": {
+        "te": "ఇండియా పోస్ట్ టోల్ ఫ్రీ కస్టమర్ కేర్ (తపాలా పథకాలు)",
+        "ta": "இந்திய அஞ்சல் வாடிக்கையாளர் சேவை (தபால் திட்டங்கள்)",
+        "hi": "इंडिया पोस्ट टोल फ्री ग्राहक सेवा (डाकघर योजनाएं)",
+        "en": "India Post Customer Care (Savings Schemes & SSY)"
+      },
+      "phone": "1800-266-6868",
+      "tel_link": "tel:18002666868",
+      "timing": "09:00 AM - 06:00 PM (Monday to Saturday, except Gazetted Holidays)",
+      "timing_regional": {
+        "te": "ఉదయం 9:00 నుండి సాయంత్రం 6:00 వరకు (ఆదివారాలు, సెలవులు మినహా)",
+        "ta": "காலை 9:00 மணி முதல் மாலை 6:00 மணி வரை (ஞாயிறு மற்றும் விடுமுறை தவிர)",
+        "hi": "सुबह 9:00 से शाम 6:00 बजे तक (रविवार और सरकारी छुट्टियों को छोड़कर)",
+        "en": "09:00 AM to 06:00 PM (Mon-Sat, except national holidays)"
+      },
+      "purpose": "Inquiry regarding Sukanya Samriddhi account opening, branch locations, and passbook issues.",
+      "purpose_regional": {
+        "te": "సుకున్య సమృద్ధి ఖాతా తెరవడం, పోస్టాఫీస్ చిరునామా, మరియు పాస్‌బుక్ వివరాలు తెలుసుకోవడానికి.",
+        "ta": "சுகன்யா சம்ரித்தி கணக்கு தொடங்குதல் மற்றும் தபால் நிலைய முகவரி அறிய.",
+        "hi": "सुकन्या समृद्धि खाता खोलने, पासबुक एवं डाकघर की जानकारी हेतु।",
+        "en": "For account opening guidance, post office locations, and savings rules."
+      },
+      "source_url": "https://www.indiapost.gov.in/VAS/Pages/CustomerSupport/CustomerFeedback.aspx",
+      "last_verified": "2024-10-01"
+    },
+    {
+      "id": "women_helpline",
+      "name": "National Women Helpline (Ministry of WCD)",
+      "name_regional": {
+        "te": "జాతీయ మహిళా హెల్ప్‌లైన్ (మహిళా శిశు సంక్షేమ శాఖ)",
+        "ta": "தேசிய மகளிர் உதவி எண் (மகளிர் மற்றும் குழந்தைகள் மேம்பாட்டு அமைச்சகம்)",
+        "hi": "राष्ट्रीय महिला हेल्पलाइन (महिला एवं बाल विकास मंत्रालय)",
+        "en": "National Women Helpline (Ministry of WCD)"
+      },
+      "phone": "181",
+      "tel_link": "tel:181",
+      "timing": "24 hours / 7 days (Toll-Free)",
+      "timing_regional": {
+        "te": "24 గంటలు / 7 రోజులు అందుబాటులో ఉంటుంది (ఉచితం)",
+        "ta": "24 மணி நேரமும் செயல்படும் (கட்டணமில்லா எண்)",
+        "hi": "24 घंटे, सातों दिन उपलब्ध (टोल-फ्री)",
+        "en": "24 hours / 7 days (Toll-Free across India)"
+      },
+      "purpose": "Assistance and guidance for rural women and girl child government welfare initiatives.",
+      "purpose_regional": {
+        "te": "గ్రామీణ మహిళలకు ప్రభుత్వ సహాయం, బాలికల సంక్షేమ పథకాల సమాచారం కోసం.",
+        "ta": "கிராமப்புற பெண்கள் மற்றும் பெண் குழந்தைகள் நல திட்ட வழிகாட்டுதலுக்கு.",
+        "hi": "ग्रामीण महिलाओं एवं बालिकाओं की कल्याणकारी योजनाओं की जानकारी हेतु।",
+        "en": "Guidance on women & girl child welfare schemes and emergency support."
+      },
+      "source_url": "https://wcd.nic.in/schemes/women-helpline-scheme",
+      "last_verified": "2024-10-01"
+    },
+    {
+      "id": "childline_india",
+      "name": "Emergency Childline Service (MWCD)",
+      "name_regional": {
+        "te": "చైల్డ్‌లైన్ ఇండియా ఎమర్జెన్సీ హెల్ప్‌లైన్",
+        "ta": "குழந்தைகள் உதவி எண் (Childline)",
+        "hi": "चाइल्डलाइन आपातकालीन सेवा",
+        "en": "National Childline Helpline"
+      },
+      "phone": "1098",
+      "tel_link": "tel:1098",
+      "timing": "24 hours / 7 days (Toll-Free)",
+      "timing_regional": {
+        "te": "24 గంటలు / 7 రోజులు (ఉచిత కాల్)",
+        "ta": "24 மணி நேரமும் செயல்படும் (கட்டணமில்லா எண்)",
+        "hi": "24 घंटे, सातों दिन (टोल-फ्री)",
+        "en": "24 hours / 7 days (Toll-Free)"
+      },
+      "purpose": "National 24-hour emergency phone service for children in need of aid and assistance.",
+      "purpose_regional": {
+        "te": "ఆడపిల్లల సంరక్షణ మరియు హక్కుల రక్షణ కోసం జాతీయ ఉచిత నంబర్.",
+        "ta": "குழந்தைகளின் பாதுகாப்பு மற்றும் அவசர உதவிக்கு.",
+        "hi": "बच्चों की सुरक्षा और अधिकारों की सहायता हेतु राष्ट्रीय सेवा।",
+        "en": "National child care, welfare, and birth rights support."
+      },
+      "source_url": "https://wcd.nic.in",
+      "last_verified": "2024-10-01"
+    }
+  ]
+}

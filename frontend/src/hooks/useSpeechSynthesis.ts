@@ -4,7 +4,7 @@ export function useSpeechSynthesis() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [isSupported, setIsSupported] = useState(true);
-  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -20,6 +20,9 @@ export function useSpeechSynthesis() {
         if (window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel();
         }
+        if (currentAudioRef.current) {
+          currentAudioRef.current.pause();
+        }
       };
     } else {
       setIsSupported(false);
@@ -27,22 +30,67 @@ export function useSpeechSynthesis() {
   }, []);
 
   const stop = useCallback(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (typeof window !== 'undefined') {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      if (currentAudioRef.current) {
+        currentAudioRef.current.pause();
+        currentAudioRef.current = null;
+      }
       setIsSpeaking(false);
     }
   }, []);
 
-  const speak = useCallback(
-    (text: string, langCode: string = 'te-IN', onEndCallback?: () => void) => {
+  // Play Cloud TTS Base64 Audio
+  const playBase64Audio = useCallback(
+    (base64Audio: string, onEndCallback?: () => void): Promise<boolean> => {
+      stop();
+      return new Promise((resolve) => {
+        try {
+          const audio = new Audio(`data:audio/mp3;base64,${base64Audio}`);
+          currentAudioRef.current = audio;
+
+          audio.onplay = () => setIsSpeaking(true);
+          audio.onended = () => {
+            setIsSpeaking(false);
+            currentAudioRef.current = null;
+            if (onEndCallback) onEndCallback();
+            resolve(true);
+          };
+          audio.onerror = () => {
+            setIsSpeaking(false);
+            currentAudioRef.current = null;
+            resolve(false);
+          };
+
+          audio.play().catch(() => {
+            setIsSpeaking(false);
+            resolve(false);
+          });
+        } catch {
+          resolve(false);
+        }
+      });
+    },
+    [stop]
+  );
+
+  // Browser SpeechSynthesis Fallback
+  const speakBrowser = useCallback(
+    (
+      text: string,
+      langCode: string = 'te-IN',
+      speed: number = 0.95,
+      gender: 'FEMALE' | 'MALE' = 'FEMALE',
+      onEndCallback?: () => void
+    ) => {
       if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
         return;
       }
 
-      // Stop any existing speech before starting new
       window.speechSynthesis.cancel();
 
-      // Clean markdown or symbol remnants for cleaner voice playback
       const cleanText = text
         .replace(/[*_#`~[\]()]/g, '')
         .replace(/₹/g, ' రూపాయలు ')
@@ -52,10 +100,9 @@ export function useSpeechSynthesis() {
 
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.lang = langCode;
-      utterance.rate = 0.95; // Slightly slower, clear cadence for rural users
-      utterance.pitch = 1.0;
+      utterance.rate = speed;
+      utterance.pitch = gender === 'FEMALE' ? 1.05 : 0.95;
 
-      // Try to find the best matching voice
       const targetPrefix = langCode.slice(0, 2);
       const matchedVoice =
         voices.find((v) => v.lang === langCode) ||
@@ -67,22 +114,13 @@ export function useSpeechSynthesis() {
         utterance.voice = matchedVoice;
       }
 
-      utterance.onstart = () => {
-        setIsSpeaking(true);
-      };
-
+      utterance.onstart = () => setIsSpeaking(true);
       utterance.onend = () => {
         setIsSpeaking(false);
-        if (onEndCallback) {
-          onEndCallback();
-        }
+        if (onEndCallback) onEndCallback();
       };
+      utterance.onerror = () => setIsSpeaking(false);
 
-      utterance.onerror = () => {
-        setIsSpeaking(false);
-      };
-
-      currentUtteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
     },
     [voices]
@@ -91,7 +129,8 @@ export function useSpeechSynthesis() {
   return {
     isSpeaking,
     isSupported,
-    speak,
+    playBase64Audio,
+    speak: speakBrowser,
     stop,
   };
 }

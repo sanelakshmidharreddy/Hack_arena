@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Mic, MicOff, Keyboard, Volume2, AlertCircle, Loader2, Sparkles } from 'lucide-react';
-import { Language, VoiceState } from '../types';
+import { Mic, Keyboard, Volume2, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { VoiceState } from '../types';
 import { AudioWaveform } from './AudioWaveform';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface VoiceHeroProps {
-  language: Language;
   voiceState: VoiceState;
   onStartListening: () => void;
   onStopListening: () => void;
@@ -14,7 +14,6 @@ interface VoiceHeroProps {
 }
 
 export const VoiceHero: React.FC<VoiceHeroProps> = ({
-  language,
   voiceState,
   onStartListening,
   onStopListening,
@@ -22,6 +21,7 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
   onSelectSampleNeed,
   errorMessage,
 }) => {
+  const { t } = useLanguage();
   const [showTextInput, setShowTextInput] = useState(false);
   const [inputText, setInputText] = useState('');
 
@@ -47,76 +47,66 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
     }
   };
 
-  // Sample real-world needs for quick 1-tap testing
-  const sampleNeeds: Record<string, string[]> = {
-    te: [
-      'నా బిడ్డ చదువు కోసం సహాయం కావాలి',
-      'నా పాపకు 7 సంవత్సరాలు, అర్హురాలా?',
-      'ఏ కాగితాలు కావాలి?',
-    ],
-    ta: [
-      'என் மகள் படிப்புக்கு உதவி தேவை',
-      'என் மகளுக்கு 7 வயது, தகுதி உண்டா?',
-      'என்ன ஆவணங்கள் தேவை?',
-    ],
-    hi: [
-      'मुझे मेरी बेटी की पढ़ाई के लिए मदद चाहिए',
-      'मेरी बेटी 7 साल की है, क्या वह पात्र है?',
-      'कौन-कौन से कागजात चाहिए?',
-    ],
-    en: [
-      "I need help for my daughter's education",
-      'My daughter is 7 years old, is she eligible?',
-      'What documents are required?',
-    ],
-  };
-
-  const currentSamples = sampleNeeds[language.code] || sampleNeeds.te;
+  const sampleQuestions = [
+    t.sampleNeedHelp,
+    t.sampleIsEligible,
+    t.sampleDocuments,
+    t.sampleFindOffice,
+  ];
 
   return (
-    <div className="w-full flex flex-col items-center justify-center py-6 px-4 max-w-lg mx-auto text-center">
+    <div className="w-full flex flex-col items-center justify-center py-4 px-4 max-w-lg mx-auto text-center">
+      {/* Large Centred Brand Logo */}
+      <div className="mb-4 flex flex-col items-center">
+        <img
+          src="/logo-source.png"
+          alt="Jansakhi - Voice AI Digital Guide"
+          className="w-32 h-32 sm:w-36 sm:h-36 rounded-3xl object-contain shadow-soft border-2 border-amber-100 bg-white p-2"
+        />
+        <div className="mt-2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-jansakhi-green text-xs font-bold border border-emerald-200">
+          <CheckCircle2 className="w-3.5 h-3.5 text-jansakhi-green" />
+          <span>{t.lastVerifiedBadge}</span>
+        </div>
+      </div>
+
       {/* Trust pill */}
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-guide-blueLight text-guide-blue text-xs font-semibold mb-4 border border-blue-200">
-        <Sparkles className="w-3.5 h-3.5" />
-        <span>ఏ ప్రభుత్వ విభాగాల పేర్లు తెలియాల్సిన పనిలేదు</span>
+      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-guide-blueLight text-jansakhi-navy text-xs font-bold mb-3 border border-blue-200">
+        <Sparkles className="w-3.5 h-3.5 text-jansakhi-saffron" />
+        <span>{t.noDepartmentNeeded}</span>
       </div>
 
       {/* Main Headline */}
-      <h2 className="text-2xl sm:text-3xl font-extrabold text-guide-textMain tracking-tight leading-snug mb-2">
-        {language.welcome}
+      <h2 className="text-2xl sm:text-3xl font-black text-jansakhi-navy tracking-tight leading-snug mb-2">
+        {t.welcomeHeadline}
       </h2>
-      <p className="text-base text-guide-textMuted max-w-md mx-auto mb-8 font-medium">
-        {language.speakSubtext}
+      <p className="text-sm sm:text-base text-slate-600 max-w-md mx-auto mb-6 font-medium">
+        {t.welcomeSubtext}
       </p>
 
       {/* Large Voice Action Hub */}
-      <div className="relative flex flex-col items-center justify-center my-4">
+      <div className="relative flex flex-col items-center justify-center my-2">
         {/* Animated aura rings for listening */}
         {isListening && (
-          <div className="absolute w-44 h-44 rounded-full bg-guide-accent/20 animate-ping -z-10" />
+          <div className="absolute w-48 h-48 rounded-full bg-rose-500/20 animate-ping -z-10" />
         )}
         {isThinking && (
-          <div className="absolute w-40 h-40 rounded-full bg-amber-400/20 animate-pulse -z-10" />
+          <div className="absolute w-44 h-44 rounded-full bg-amber-400/20 animate-pulse -z-10" />
         )}
 
         {/* Big Accessible Microphone Button */}
         <button
           onClick={handleMicClick}
           disabled={isThinking}
-          className={`w-32 h-32 sm:w-36 sm:h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 transform active:scale-95 shadow-lifted min-h-touch min-w-touch focus:outline-none focus:ring-4 focus:ring-guide-accent/50 ${
+          className={`w-32 h-32 sm:w-36 sm:h-36 rounded-full flex flex-col items-center justify-center transition-all duration-300 transform active:scale-95 shadow-lifted min-h-touch min-w-touch focus:outline-none focus:ring-4 focus:ring-jansakhi-saffron/50 ${
             isListening
-              ? 'bg-gradient-to-tr from-rose-500 to-red-600 text-white animate-mic-listening ring-4 ring-rose-400'
+              ? 'bg-gradient-to-tr from-rose-500 to-red-600 text-white animate-pulse ring-4 ring-rose-400'
               : isThinking
               ? 'bg-gradient-to-tr from-amber-500 to-amber-600 text-white cursor-wait'
               : isSpeaking
-              ? 'bg-gradient-to-tr from-guide-accent to-guide-accentPurple text-white ring-4 ring-purple-300'
-              : 'bg-gradient-to-tr from-guide-blue to-guide-accent text-white hover:brightness-105'
+              ? 'bg-gradient-to-tr from-jansakhi-green to-emerald-600 text-white ring-4 ring-emerald-300'
+              : 'bg-gradient-to-tr from-jansakhi-navy via-jansakhi-wave to-jansakhi-green text-white hover:brightness-105'
           }`}
-          aria-label={
-            isListening
-              ? 'వింటున్నాము. ఆపడానికి నొక్కండి'
-              : 'మైక్రోఫోన్ నొక్కి మాట్లాడండి'
-          }
+          aria-label={isListening ? t.listeningState : t.speakPrompt}
         >
           {isThinking ? (
             <Loader2 className="w-14 h-14 animate-spin" />
@@ -128,8 +118,8 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
           ) : isListening ? (
             <div className="flex flex-col items-center">
               <Mic className="w-14 h-14 animate-pulse" />
-              <span className="text-xs font-bold uppercase tracking-wider mt-1">
-                వింటున్నాం...
+              <span className="text-[11px] font-black uppercase tracking-wider mt-1">
+                {t.listeningState.slice(0, 12)}...
               </span>
             </div>
           ) : (
@@ -138,27 +128,27 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
         </button>
 
         {/* State Label */}
-        <div className="mt-4">
+        <div className="mt-4 min-h-[32px] flex items-center justify-center">
           {isListening && (
-            <div className="flex items-center gap-2 text-rose-600 font-bold text-lg animate-pulse">
-              <span className="w-3 h-3 rounded-full bg-rose-600 inline-block animate-ping" />
-              <span>స్పష్టంగా మాట్లాడండి...</span>
+            <div className="flex items-center gap-2 text-rose-600 font-extrabold text-base sm:text-lg animate-pulse">
+              <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block animate-ping" />
+              <span>{t.listeningState}</span>
             </div>
           )}
           {isThinking && (
-            <div className="flex items-center gap-2 text-amber-700 font-bold text-base">
-              <span>సమాచారాన్ని పరిశీలిస్తున్నాం...</span>
+            <div className="flex items-center gap-2 text-amber-700 font-extrabold text-base">
+              <span>{t.thinkingState}</span>
             </div>
           )}
           {isSpeaking && (
-            <div className="flex items-center gap-2 text-guide-accentPurple font-bold text-base">
+            <div className="flex items-center gap-2 text-jansakhi-green font-extrabold text-base">
               <Volume2 className="w-5 h-5 animate-pulse" />
-              <span>వివరణ వినండి...</span>
+              <span>{t.speakingState}</span>
             </div>
           )}
           {!isListening && !isThinking && !isSpeaking && (
-            <div className="text-slate-700 font-bold text-lg">
-              {language.speakPrompt}
+            <div className="text-jansakhi-navy font-black text-base sm:text-lg">
+              {t.speakPrompt}
             </div>
           )}
         </div>
@@ -167,26 +157,26 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
       {/* Error Banner */}
       {isError && errorMessage && (
         <div
-          className="mt-4 w-full p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-3 text-left animate-in fade-in"
+          className="mt-4 w-full p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium flex items-center gap-3 text-left animate-in fade-in"
           role="alert"
         >
           <AlertCircle className="w-6 h-6 flex-shrink-0 text-red-500" />
           <div>
-            <p className="font-bold">ధ్వని రికార్డింగ్ విఫలమైంది</p>
+            <p className="font-bold">{t.voiceError}</p>
             <p className="text-xs text-red-600">{errorMessage}</p>
           </div>
         </div>
       )}
 
       {/* Fallback Text Input Toggle */}
-      <div className="mt-6 w-full">
+      <div className="mt-5 w-full">
         {!showTextInput ? (
           <button
             onClick={() => setShowTextInput(true)}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white border-2 border-slate-200 text-slate-700 font-semibold hover:border-guide-blue hover:text-guide-blue transition min-h-touch text-sm shadow-xs"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white border-2 border-slate-200 text-slate-700 font-bold hover:border-jansakhi-wave hover:text-jansakhi-navy transition min-h-touch text-sm shadow-xs"
           >
-            <Keyboard className="w-4 h-4" />
-            <span>{language.typeFallback}</span>
+            <Keyboard className="w-4 h-4 text-jansakhi-wave" />
+            <span>{t.typeFallback}</span>
           </button>
         ) : (
           <form onSubmit={handleTextSubmit} className="w-full flex gap-2 animate-in fade-in">
@@ -194,36 +184,36 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="ఉదా: నా కూతురి చదువు కోసం సహాయం..."
-              className="flex-1 px-4 py-3 rounded-xl border-2 border-slate-300 focus:border-guide-blue focus:outline-none text-base min-h-touch bg-white"
+              placeholder={t.typePlaceholder}
+              className="flex-1 px-4 py-3 rounded-2xl border-2 border-slate-300 focus:border-jansakhi-navy focus:outline-none text-base min-h-touch bg-white"
               autoFocus
             />
             <button
               type="submit"
               disabled={!inputText.trim()}
-              className="px-5 py-3 rounded-xl bg-guide-blue text-white font-bold disabled:opacity-50 hover:bg-guide-blueHover transition min-h-touch flex items-center justify-center text-sm"
+              className="px-5 py-3 rounded-2xl bg-jansakhi-green text-white font-black disabled:opacity-50 hover:bg-emerald-700 transition min-h-touch flex items-center justify-center text-sm shadow-xs"
             >
-              అడగండి
+              {t.askBtn}
             </button>
           </form>
         )}
       </div>
 
       {/* Quick Example Need Chips */}
-      <div className="mt-8 w-full text-left">
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">
-          👉 లేదా వీటిలో ఒకదాన్ని నొక్కండి:
+      <div className="mt-7 w-full text-left">
+        <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2.5">
+          {t.samplePromptHeader}
         </p>
         <div className="flex flex-col gap-2">
-          {currentSamples.map((need, idx) => (
+          {sampleQuestions.map((need, idx) => (
             <button
               key={idx}
               onClick={() => onSelectSampleNeed(need)}
-              className="w-full text-left p-3.5 rounded-xl bg-white border border-slate-200 hover:border-guide-blue hover:bg-guide-blueLight/30 text-slate-800 text-sm font-semibold transition flex items-center justify-between group min-h-touch"
+              className="w-full text-left p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-jansakhi-wave hover:bg-blue-50/50 text-slate-800 text-sm font-bold transition flex items-center justify-between group min-h-touch shadow-2xs"
             >
               <span>"{need}"</span>
-              <span className="text-guide-blue font-bold opacity-0 group-hover:opacity-100 transition text-xs">
-                ఎంచుకోండి →
+              <span className="text-jansakhi-wave font-black opacity-0 group-hover:opacity-100 transition text-xs">
+                →
               </span>
             </button>
           ))}

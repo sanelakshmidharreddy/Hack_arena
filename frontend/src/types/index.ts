@@ -64,4 +64,4 @@ export interface ChatMessage {
   data?: Partial<AssistantResponse>;
 }
 
-export type AppScreen = 'language' | 'home' | 'chat' | 'guide' | 'result' | 'next-action';
+export type AppScreen = 'language' | 'home' | 'chat' | 'guide' | 'result' | 'next-action' | 'locator';

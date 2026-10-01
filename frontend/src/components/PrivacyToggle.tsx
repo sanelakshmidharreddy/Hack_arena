@@ -1,5 +1,6 @@
 import React from 'react';
-import { Shield, ShieldAlert, Trash2, X, Check } from 'lucide-react';
+import { Shield, Trash2, X } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface PrivacyModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({
   onClearConversation,
   onClose,
 }) => {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -29,36 +31,35 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
-              <Shield className="w-5 h-5" />
+              <Shield className="w-5 h-5 text-amber-700" />
             </div>
-            <h3 id="privacy-modal-title" className="text-lg font-bold text-slate-900">
-              ప్రైవసీ మరియు భద్రత
+            <h3 id="privacy-modal-title" className="text-lg font-black text-slate-900">
+              {t.privacyTitle}
             </h3>
           </div>
           <button
             onClick={onClose}
             className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-700 min-h-touch min-w-touch flex items-center justify-center"
-            aria-label="Close privacy settings"
+            aria-label="Close"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="mt-4 space-y-4">
-          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold leading-relaxed">
-            🛡️ <strong>షేర్డ్ ఫోన్ భద్రత:</strong> గ్రామీణ ప్రాంతాల్లో ఒకే ఫోన్‌ను కుటుంబ సభ్యులు కలిసి వాడుతుంటారు. ఈ గైడ్ ఎటువంటి పాస్‌వర్డ్‌లు, ఓటీపీలు, లేదా వ్యక్తిగత ఖాతా వివరాలు అడగదు మరియు భద్రపరచదు.
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 text-xs font-semibold leading-relaxed">
+            🛡️ {t.privacyNotice}
           </div>
 
           {/* Privacy mode toggle button */}
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
             <div>
-              <p className="font-bold text-slate-900 text-sm">ప్రైవసీ మోడ్ (Privacy Mode)</p>
-              <p className="text-xs text-slate-500">సంభాషణ చరిత్రను ఉంచవద్దు</p>
+              <p className="font-extrabold text-slate-900 text-sm">{t.privacyToggle}</p>
             </div>
             <button
               onClick={onTogglePrivacy}
               className={`w-14 h-8 rounded-full transition-colors relative flex items-center px-1 ${
-                privacyMode ? 'bg-guide-blue' : 'bg-slate-300'
+                privacyMode ? 'bg-jansakhi-navy' : 'bg-slate-300'
               }`}
               aria-label="Toggle privacy mode"
             >
@@ -79,16 +80,16 @@ export const PrivacyModal: React.FC<PrivacyModalProps> = ({
             className="w-full py-3.5 px-4 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm border border-rose-200 transition flex items-center justify-center gap-2 min-h-touch"
           >
             <Trash2 className="w-4 h-4" />
-            <span>సంభాషణను ఇప్పుడే తొలగించండి (Clear History)</span>
+            <span>{t.clearHistory}</span>
           </button>
         </div>
 
         <div className="mt-5 text-center">
           <button
             onClick={onClose}
-            className="w-full py-3 rounded-xl bg-slate-900 text-white font-bold text-sm min-h-touch"
+            className="w-full py-3 rounded-2xl bg-slate-900 hover:bg-black text-white font-bold text-sm min-h-touch"
           >
-            పూర్తయింది (Close)
+            OK
           </button>
         </div>
       </div>

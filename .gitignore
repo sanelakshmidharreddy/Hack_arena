@@ -15,6 +15,8 @@ __pycache__/
 .coverage
 htmlcov/
 .env
+.env.*
+.env.local
 .venv
 env/
 venv/

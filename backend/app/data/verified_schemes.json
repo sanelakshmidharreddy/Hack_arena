@@ -1,4 +1,7 @@
 {
+  "last_verified": "2024-10-01",
+  "source_authority": "Ministry of Finance & Department of Posts (India Post)",
+  "source_url": "https://www.indiapost.gov.in/Financial/Pages/Content/Sukanya-Samriddhi-Account.aspx",
   "schemes": [
     {
       "id": "sukanya_samriddhi_yojana",
@@ -9,6 +12,14 @@
         "hi": "सुकन्या समृद्धि योजना (बालिका समृद्धि खाता)",
         "en": "Sukanya Samriddhi Yojana (SSY)"
       },
+      "interest_rate": "8.2% per annum",
+      "interest_compounding": "Compounded annually",
+      "minimum_deposit": 250,
+      "maximum_deposit": 150000,
+      "deposit_frequency": "Annual (in multiples of ₹50)",
+      "deposit_tenure_years": 15,
+      "maturity_tenure_years": 21,
+      "tax_status": "EEE (Exempt-Exempt-Exempt under Section 80C)",
       "purpose": "Financial security, higher education and welfare fund for girl children in India.",
       "purpose_regional": {
         "te": "ఆడపిల్లల ఉన్నత చదువు మరియు భవిష్యత్ భరోసా కోసం కేంద్ర ప్రభుత్వ ప్రత్యేక పొదుపు పథకం.",
@@ -31,7 +42,7 @@
         "te": [
           "పాప వయస్సు 10 సంవత్సరాలు లేదా అంతకంటే తక్కువ ఉండాలి.",
           "భారతీయ పౌరురాలై ఉండాలి.",
-          "ఒక కుటుంబంలో గరిష్టంగా ఇద్దరు ఆడపిల్లలకు మాత్రమే ఖాతా తెరవవచ్చు.",
+          "ఒక కుటుంబంలో గరిష్టంగా ఇద్దరు ఆడపిల్లలకు మాత్రమే ఖాతా తెరవవచ్చు (కవలల మినహాయింపుతో).",
           "తల్లి లేదా తండ్రి లేదా సంరక్షకుడు ఖాతా తెరవాలి."
         ],
         "ta": [
@@ -45,11 +56,52 @@
           "भारत की नागरिक होनी चाहिए।",
           "एक परिवार में अधिकतम 2 बालिकाओं के लिए खाता खोला जा सकता है।",
           "माता-पिता या कानूनी अभिभावक द्वारा खाता खोला जा सकता है।"
+        ],
+        "en": [
+          "Girl child must be 10 years of age or younger.",
+          "Must be an Indian citizen.",
+          "Maximum 2 accounts per family (with exception for twins/triplets).",
+          "Parent or legal guardian opens and operates account."
         ]
+      },
+      "ineligible_reasons": {
+        "older_than_10": {
+          "explanation": "Sukanya Samriddhi Yojana strictly permits girls up to 10 years of age.",
+          "explanation_regional": {
+            "te": "సుకున్య సమృద్ధి ఖాతా కేవలం 10 సంవత్సరాల లోపు ఆడపిల్లలకు మాత్రమే వర్తిస్తుంది.",
+            "ta": "சுகன்யா சம்ரித்தி திட்டம் 10 வயதுக்குட்பட்ட பெண் குழந்தைகளுக்கு மட்டுமே பொருந்தும்.",
+            "hi": "सुकन्या समृद्धि योजना केवल 10 वर्ष तक की बालिकाओं के लिए ही मान्य है।",
+            "en": "Sukanya Samriddhi Yojana is exclusively for girl children aged 10 years or younger."
+          },
+          "alternatives": [
+            {
+              "name": "Mahila Samman Savings Certificate (MSSC)",
+              "name_regional": {
+                "te": "మహిళా సమ్మాన్ పొదుపు పత్రం (MSSC)",
+                "ta": "மகிளா சம்மான் சேமிப்பு சான்றிதழ்",
+                "hi": "महिला सम्मान बचत प्रमाणपत्र",
+                "en": "Mahila Samman Savings Certificate (MSSC)"
+              },
+              "interest_rate": "7.5% per annum",
+              "eligibility": "Any girl child or woman of any age; 2-year tenure up to ₹2,00,000."
+            },
+            {
+              "name": "Public Provident Fund (PPF)",
+              "name_regional": {
+                "te": "పబ్లిక్ ప్రావిడెంట్ ఫండ్ (PPF)",
+                "ta": "பொது வருங்கால வைப்பு நிதி (PPF)",
+                "hi": "पब्लिक प्रॉविडेंट फंड (PPF)",
+                "en": "Public Provident Fund (PPF)"
+              },
+              "interest_rate": "7.1% per annum",
+              "eligibility": "Any citizen or child of any age; 15-year government guaranteed tenure."
+            }
+          ]
+        }
       },
       "benefits": [
         "Government guaranteed interest rate of 8.2% per annum.",
-        "Completely tax-free under Income Tax Section 80C.",
+        "Completely tax-free under Income Tax Section 80C (EEE status).",
         "Account can be opened with just ₹250 initial deposit.",
         "50% partial withdrawal allowed for higher education once the girl turns 18 or clears 10th standard.",
         "Account matures 21 years from opening date or upon girl's marriage after age 18."
