@@ -1,12 +1,11 @@
 import { AssistantResponse, LanguageCode } from '../types';
 import { DEMO_PATHS } from '../data/demoPaths';
 
-const API_URL = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
-const API_BASE = `${API_URL}/api`;
+const API_BASE = '/api';
 
 export async function checkHealth(): Promise<{ status: string }> {
   try {
-    const res = await fetch(`${API_URL || ''}/health`);
+    const res = await fetch('/health');
     if (!res.ok) throw new Error('Health check failed');
     return await res.json();
   } catch (err) {

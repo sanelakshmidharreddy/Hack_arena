@@ -14,12 +14,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS configuration supporting local dev, Render, and Vercel frontends
+# CORS configuration - allows all origins so no FRONTEND_URL is required on Render
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"https://.*\.vercel\.app",
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
