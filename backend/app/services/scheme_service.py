@@ -432,4 +432,134 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
         # Fallback to need_help
         return self.get_deterministic_path("need_help", lang)
 
+    # ------------------------------------------------------------------
+    # Multi-scheme support methods
+    # ------------------------------------------------------------------
+
+    def _get_scheme_by_id(self, scheme_id: str) -> Dict[str, Any]:
+        """Return the scheme dict for a given ID, or empty dict if not found."""
+        for s in self._data.get("schemes", []):
+            if s.get("id") == scheme_id:
+                return s
+        return {}
+
+    def get_scheme_context_prompt(self, scheme_id: str, lang: str) -> str:
+        """
+        Build a concise verified-data context block for the LLM.
+        Falls back to SSY context for unknown IDs.
+        """
+        scheme = self._get_scheme_by_id(scheme_id)
+        if not scheme:
+            return self.get_verified_context_prompt(lang)
+
+        name = scheme.get("name_regional", {}).get(lang) or scheme.get("name", "")
+        purpose = scheme.get("purpose_regional", {}).get(lang) or scheme.get("purpose", "")
+        official_url = scheme.get("official_url", "")
+        eligibility = scheme.get("eligibility_regional", {}).get(lang) or scheme.get("eligibility", [])
+        last_verified = self._data.get("last_verified", "2024-10-01")
+
+        # Collect benefits
+        benefits = scheme.get("benefits", [])
+        benefit_text = "\n".join(f"- {b}" for b in benefits[:6])
+
+        # Collect documents
+        docs = scheme.get("documents", [])
+        doc_text = "\n".join(
+            f"- {d.get('name_regional', {}).get(lang) or d.get('name', '')}"
+            for d in docs[:6]
+        )
+
+        # Collect steps
+        steps = scheme.get("steps", [])
+        step_text = "\n".join(
+            f"Step {s.get('step_number', i+1)}: "
+            f"{s.get('instruction_regional', {}).get(lang) or s.get('instruction', '')}"
+            for i, s in enumerate(steps[:5])
+        )
+
+        elig_text = "\n".join(f"- {e}" for e in (eligibility if isinstance(eligibility, list) else [eligibility]))
+
+        contact = ""
+        clarification_qs = scheme.get("clarification_questions", {}).get(lang, [])
+
+        return f"""
+VERIFIED GOVERNMENT SCHEME KNOWLEDGE (LAST VERIFIED: {last_verified}):
+Scheme: {name}
+Official URL: {official_url}
+Purpose: {purpose}
+
+ELIGIBILITY:
+{elig_text}
+
+KEY BENEFITS:
+{benefit_text}
+
+REQUIRED DOCUMENTS:
+{doc_text}
+
+HOW TO APPLY (STEPS):
+{step_text}
+
+IMPORTANT: Only answer about {name}. Never invent facts. If unsure, say "please visit {official_url or 'the official portal'} or contact your nearest government office."
+"""
+
+    def get_education_scheme_response(self, scheme_id: str, lang: str) -> AssistantResponse:
+        """
+        Deterministic response for education schemes when LLM is unavailable.
+        Returns a verified summary of the scheme with steps and documents.
+        """
+        scheme = self._get_scheme_by_id(scheme_id)
+        if not scheme:
+            return self.get_deterministic_path("unrelated", lang)
+
+        name = scheme.get("name_regional", {}).get(lang) or scheme.get("name", "")
+        purpose = scheme.get("purpose_regional", {}).get(lang) or scheme.get("purpose", "")
+        official_url = scheme.get("official_url", "")
+
+        # Build reply
+        reply_templates = {
+            "te": f"{name} గురించి: {purpose} దయచేసి {official_url} లేదా సమీప ప్రభుత్వ కార్యాలయాన్ని సంప్రదించండి.",
+            "hi": f"{name} के बारे में: {purpose} कृपया {official_url} या निकटतम सरकारी कार्यालय से संपर्क करें।",
+            "ta": f"{name} பற்றி: {purpose} தயவுசெய்து {official_url} அல்லது அருகிலுள்ள அரசு அலுவலகத்தைத் தொடர்பு கொள்ளவும்.",
+            "en": f"{name}: {purpose} Please visit {official_url} or your nearest government office.",
+        }
+        reply = reply_templates.get(lang, reply_templates["en"])
+
+        # Build document list
+        docs_raw = scheme.get("documents", [])
+        docs = [
+            DocumentItem(
+                name=d.get("name_regional", {}).get(lang) or d.get("name", ""),
+                purpose=d.get("purpose_regional", {}).get(lang) or d.get("purpose", ""),
+            )
+            for d in docs_raw[:6]
+        ]
+
+        # Build steps list
+        steps_raw = scheme.get("steps", [])
+        steps = [
+            StepItem(
+                step_number=s.get("step_number", i + 1),
+                instruction=s.get("instruction_regional", {}).get(lang) or s.get("instruction", ""),
+                detail=s.get("detail_regional", {}).get(lang) or s.get("detail", ""),
+                action_text=s.get("action_text", "Next"),
+            )
+            for i, s in enumerate(steps_raw[:5])
+        ]
+
+        return AssistantResponse(
+            reply=reply,
+            intent="education_scheme_info",
+            needs_clarification=False,
+            question=None,
+            eligible="unknown",
+            explanation=purpose,
+            documents=docs,
+            steps=steps,
+            next_action=official_url,
+            source="verified_demo_data",
+            confidence="verified",
+        )
+
+
 scheme_service = SchemeService()

@@ -14,11 +14,19 @@ from app.config import (
 )
 from app.models.response_models import AssistantResponse, DocumentItem, StepItem, OptionItem
 from app.services.scheme_service import scheme_service
+from app.services.scheme_router import (
+    identify_scheme_from_message,
+    route_clarification_answer,
+    RoutingResult,
+)
 
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """
-You are "Jansakhi" (జనసఖి / ஜனசகி / जनसखी) — an empathetic, respectful, audio-first AI digital guide created to help a rural Indian woman access ONE government scheme: Sukanya Samriddhi Yojana (SSY).
+You are "Jansakhi" (జనసఖి / ஜனசகி / जनसखी) — an empathetic, respectful, audio-first AI digital guide created to help a rural Indian woman access Indian government education and savings schemes.
+
+IDENTIFIED SCHEME: {scheme_id} — {scheme_label}
+Answer ONLY about this scheme. NEVER mix facts from another scheme.
 
 USER PROFILE:
 - Rural Indian woman with zero digital literacy, no technical background, no website navigation knowledge.
@@ -260,49 +268,89 @@ class LLMService:
     ) -> AssistantResponse:
         # Check rate limit
         if self.is_rate_limited(client_ip):
-            logger.warning(f"Rate limit exceeded for client: {client_ip}")
+            logger.warning("Rate limit exceeded for client: %s", client_ip)
             return scheme_service.get_deterministic_path("need_help", lang)
 
-        detected_intent = detect_user_intent(message)
-        logger.info(f"Detected user intent for '{message}': {detected_intent}")
+        # ── Step 1: Scheme Identification ─────────────────────────────────────
+        # Detect whether the user is asking about one of the 6 supported schemes.
+        # SSY is the default; education schemes trigger an LLM answer with their
+        # own verified data. Vague queries trigger one-question clarification.
+        routing: RoutingResult = identify_scheme_from_message(message, lang)
+        logger.info("Scheme routing result: id=%s confidence=%.2f", routing.scheme_id, routing.confidence)
 
-        # Ineligibility check
-        if detected_intent == "ineligible":
-            logger.info("Ineligibility intent detected.")
-            return scheme_service.get_deterministic_path("eligible_no", lang)
+        if routing.clarification_needed:
+            # Return clarification question (one at a time)
+            from app.models.response_models import OptionItem as _OptionItem
+            opts = [
+                _OptionItem(label=o, value=o)
+                for o in (routing.clarification_options or [])
+            ]
+            return AssistantResponse(
+                reply=routing.clarification_question or "",
+                intent="scheme_clarification",
+                needs_clarification=True,
+                question=routing.clarification_question,
+                question_options=opts,
+                eligible="unknown",
+                explanation="",
+                documents=[],
+                steps=[],
+                next_action="",
+                source="scheme_router",
+                confidence="verified",
+            )
 
-        # Unrelated query - answer directly without deflection
-        if detected_intent == "unrelated":
-            logger.info("Unrelated query detected. Returning verified out-of-scope guidance.")
-            return scheme_service.get_deterministic_path("unrelated", lang)
+        # ── Step 2: SSY-specific checks (unchanged) ────────────────────────────
+        if routing.scheme_id in ("sukanya_samriddhi_yojana", "none"):
+            detected_intent = detect_user_intent(message)
+            logger.info("SSY intent for '%s': %s", message, detected_intent)
 
-        # Retrieve verified scheme facts (RAG)
-        scheme_context = scheme_service.get_verified_context_prompt(lang)
+            if detected_intent == "ineligible":
+                return scheme_service.get_deterministic_path("eligible_no", lang)
 
-        # Try Primary LLM -> Fallback LLM
+            if detected_intent == "unrelated" and routing.scheme_id == "none":
+                return scheme_service.get_deterministic_path("unrelated", lang)
+
+        else:
+            # Education scheme: use a generic intent category
+            detected_intent = "education_scheme_query"
+
+        # ── Step 3: Retrieve verified scheme context ───────────────────────────
+        scheme_context = scheme_service.get_scheme_context_prompt(routing.scheme_id, lang)
+
+        # ── Step 4: Try LLM providers (Gemini → Groq) ─────────────────────────
+        scheme_label = routing.identified_scheme_label or routing.scheme_id
         providers = [self.primary, self.fallback]
         for provider in providers:
             if provider == "gemini" and self.gemini_key:
                 try:
-                    resp = self._call_gemini(lang, message, history, scheme_context, detected_intent)
+                    resp = self._call_gemini(
+                        lang, message, history, scheme_context, detected_intent,
+                        scheme_id=routing.scheme_id, scheme_label=scheme_label
+                    )
                     if resp and not is_deflected_response(resp, detected_intent):
                         return resp
                     elif resp:
-                        logger.warning(f"Gemini deflected from user intent '{detected_intent}'. Trying fallback or deterministic.")
-                except Exception as e:
-                    logger.warning(f"Gemini LLM call failed: {e}. Trying fallback.")
+                        logger.warning("Gemini deflected from intent '%s'. Trying fallback.", detected_intent)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("Gemini LLM call failed: %s. Trying fallback.", e)
             elif provider == "groq" and self.groq_key:
                 try:
-                    resp = self._call_groq(lang, message, history, scheme_context, detected_intent)
+                    resp = self._call_groq(
+                        lang, message, history, scheme_context, detected_intent,
+                        scheme_id=routing.scheme_id, scheme_label=scheme_label
+                    )
                     if resp and not is_deflected_response(resp, detected_intent):
                         return resp
                     elif resp:
-                        logger.warning(f"Groq deflected from user intent '{detected_intent}'. Trying deterministic.")
-                except Exception as e:
-                    logger.warning(f"Groq LLM call failed: {e}. Trying fallback.")
+                        logger.warning("Groq deflected from intent '%s'. Trying deterministic.", detected_intent)
+                except Exception as e:  # noqa: BLE001
+                    logger.warning("Groq LLM call failed: %s. Trying fallback.", e)
 
-        # Final resilient fallback: Local deterministic verified scheme engine
-        logger.info(f"Using local deterministic verified scheme engine for intent '{detected_intent}'.")
+        # ── Step 5: Deterministic fallback ────────────────────────────────────
+        logger.info("Using deterministic fallback for intent '%s'.", detected_intent)
+        if routing.scheme_id not in ("sukanya_samriddhi_yojana", "none"):
+            return scheme_service.get_education_scheme_response(routing.scheme_id, lang)
         return self._detect_scenario_and_respond(message, lang)
 
     def _call_gemini(
@@ -311,7 +359,9 @@ class LLMService:
         message: str,
         history: List[Dict[str, str]],
         scheme_context: str,
-        detected_intent: str = "general"
+        detected_intent: str = "general",
+        scheme_id: str = "sukanya_samriddhi_yojana",
+        scheme_label: str = "Sukanya Samriddhi Yojana (SSY)",
     ) -> Optional[AssistantResponse]:
         lang_names = {
             "te": "Telugu (తెలుగు)",
@@ -323,7 +373,9 @@ class LLMService:
 
         system_instruction = SYSTEM_PROMPT.format(
             language_name=language_name,
-            verified_scheme_data=scheme_context
+            verified_scheme_data=scheme_context,
+            scheme_id=scheme_id,
+            scheme_label=scheme_label,
         )
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_key}"
@@ -370,19 +422,23 @@ class LLMService:
         message: str,
         history: List[Dict[str, str]],
         scheme_context: str,
-        detected_intent: str = "general"
+        detected_intent: str = "general",
+        scheme_id: str = "sukanya_samriddhi_yojana",
+        scheme_label: str = "Sukanya Samriddhi Yojana (SSY)",
     ) -> Optional[AssistantResponse]:
         lang_names = {
             "te": "Telugu (తెలుగు)",
             "ta": "Tamil (தமிழ்)",
-            "hi": "Hindi (हिन्दी)",
+            "hi": "Hindi (हिన्दी)",
             "en": "Simple English"
         }
         language_name = lang_names.get(lang, "Telugu")
 
         system_instruction = SYSTEM_PROMPT.format(
             language_name=language_name,
-            verified_scheme_data=scheme_context
+            verified_scheme_data=scheme_context,
+            scheme_id=scheme_id,
+            scheme_label=scheme_label,
         )
 
         messages = [{"role": "system", "content": system_instruction}]
