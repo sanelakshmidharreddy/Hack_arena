@@ -77,25 +77,36 @@ export async function sendMessage(
 
 export async function explainSimply(
   text: string,
-  language: LanguageCode
+  language: LanguageCode,
+  originalQuestion?: string,
+  schemeId: string = 'sukanya_samriddhi'
 ): Promise<{ simplified_text: string }> {
   try {
     const res = await fetch(`${API_BASE}/explain`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text, language }),
+      body: JSON.stringify({
+        language,
+        previous_answer: text,
+        text,
+        original_question: originalQuestion,
+        scheme_id: schemeId,
+      }),
     });
 
     if (res.ok) {
       return await res.json();
     }
-    throw new Error('Explain API returned error');
-  } catch {
-    const demo = DEMO_PATHS.find((d) => d.id === 'explain_simply');
-    const fallbackText =
-      demo?.response[language]?.explanation ||
-      'ఇది ప్రభుత్వం మీ పాప చదువు కోసం ఇచ్చే ఖాతా. ₹250 తో పోస్టాఫీసులో మొదలుపెట్టవచ్చు.';
-    return { simplified_text: fallbackText };
+    throw new Error('Explain API returned error: ' + res.status);
+  } catch (err) {
+    console.warn('Explain API call failed or offline, using localized verified fallback:', err);
+    const fallbackMap: Record<LanguageCode, string> = {
+      te: 'సులభంగా చెప్పాలంటే: ఇది మీ పాప చదువు కోసం ప్రభుత్వం ఇచ్చే పొదుపు ఖాతా. పోస్టాఫీసులో ₹250 తో మొదలుపెట్టవచ్చు.',
+      ta: 'எளிய வார்த்தைகளில்: இது உங்கள் மகளின் கல்விக்காக தபால் அலுவலகத்தில் திறக்கப்படும் அரசு சேமிப்பு கணக்கு. ₹250 செலுத்தி தொடங்கலாம்.',
+      hi: 'सीधे शब्दों में: यह आपकी बेटी की पढ़ाई के लिए डाकघर की सरकारी बचत योजना है। आप केवल ₹250 से खाता शुरू कर सकते हैं।',
+      en: "In simple words: This is a government savings account at the Post Office for your daughter's education. You can open it with just ₹250.",
+    };
+    return { simplified_text: fallbackMap[language] || fallbackMap['en'] };
   }
 }
 

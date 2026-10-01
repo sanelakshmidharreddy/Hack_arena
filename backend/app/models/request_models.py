@@ -19,8 +19,18 @@ class MessageRequest(BaseModel):
         return cleaned
 
 class ExplainRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=2000, description="Complex text to simplify")
-    language: AllowedLanguages = Field(default="te", description="Target language")
+    language: AllowedLanguages = Field(..., description="Target language enum: en, te, hi, or ta")
+    previous_answer: Optional[str] = Field(default=None, description="Previous assistant reply to simplify")
+    text: Optional[str] = Field(default=None, description="Backward compatible alias for previous_answer")
+    original_question: Optional[str] = Field(default=None, description="Original user question")
+    scheme_id: Optional[str] = Field(default="sukanya_samriddhi", description="Scheme identifier")
+
+    def get_target_text(self) -> str:
+        val = self.previous_answer or self.text or ""
+        cleaned = val.strip()
+        if not cleaned:
+            return "Sukanya Samriddhi Yojana provides 8.2% annual interest for girls up to 10 years."
+        return cleaned
 
 class ResetRequest(BaseModel):
     session_id: str = Field(..., min_length=1, max_length=128)

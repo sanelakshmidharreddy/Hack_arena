@@ -44,9 +44,15 @@ def handle_explain(req: ExplainRequest):
     """
     Explain Simply:
     Simplifies complex government explanations for a first-time rural woman
-    without adding any new facts or hallucinations.
+    in the requested language without adding any new facts or hallucinations.
     """
-    simplified = llm_service.explain_simply(req.text, req.language)
+    target_text = req.get_target_text()
+    simplified = llm_service.explain_simply(
+        text=target_text,
+        lang=req.language,
+        original_question=req.original_question,
+        scheme_id=req.scheme_id
+    )
     return ExplainResponse(simplified_text=simplified, source="verified_simplification")
 
 @router.post("/tts")

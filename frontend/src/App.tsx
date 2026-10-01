@@ -187,19 +187,30 @@ function AppContent() {
   // Handle Explain Simply with loading state & voice readback
   const handleExplainSimply = async (messageId: string, currentText: string) => {
     try {
+      audioManager.stopAll();
       setIsExplainingId(messageId);
-      const result = await explainSimply(currentText, language);
+
+      const targetMsgIndex = messages.findIndex((m) => m.id === messageId);
+      const targetMsg = messages[targetMsgIndex];
+      const prevUserMsg =
+        targetMsgIndex > 0 && messages[targetMsgIndex - 1]?.sender === 'user'
+          ? messages[targetMsgIndex - 1]?.text
+          : undefined;
+      const schemeId = (targetMsg?.data as any)?.scheme_id || 'sukanya_samriddhi';
+
+      const result = await explainSimply(currentText, language, prevUserMsg, schemeId);
       const simplified = result.simplified_text;
 
       setMessages((prev) =>
         prev.map((m) =>
           m.id === messageId
-            ? { ...m, isSimplified: true, simplifiedText: simplified }
+            ? { ...m, isSimplified: true, simplifiedText: simplified, simplifiedLang: language }
             : m
         )
       );
 
       setIsExplainingId(null);
+      audioManager.stopAll();
       speakText(simplified);
     } catch {
       setIsExplainingId(null);

@@ -25,14 +25,15 @@ export const Conversation: React.FC<ConversationProps> = ({
   isSpeaking,
   isExplainingId,
 }) => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   return (
     <div className="w-full max-w-xl mx-auto px-4 py-4 space-y-4">
       {messages.map((msg, index) => {
         const isUser = msg.sender === 'user';
         const isLast = index === messages.length - 1;
-        const displayText = msg.isSimplified && msg.simplifiedText ? msg.simplifiedText : msg.text;
+        const isSimplifiedForCurrentLang = Boolean(msg.isSimplified && msg.simplifiedLang === language && msg.simplifiedText);
+        const displayText = isSimplifiedForCurrentLang && msg.simplifiedText ? msg.simplifiedText : msg.text;
 
         if (isUser) {
           return (
@@ -54,7 +55,7 @@ export const Conversation: React.FC<ConversationProps> = ({
           <div key={msg.id} className="space-y-3">
             <div className="rounded-3xl rounded-tl-none p-5 sm:p-6 bg-white border border-slate-200 shadow-soft space-y-4">
               {/* Badge indicating simplified explanation if applicable */}
-              {msg.isSimplified && (
+              {isSimplifiedForCurrentLang && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
                   <Sparkles className="w-3.5 h-3.5 text-jansakhi-saffron" />
                   <span>{t.simplifiedExplanationBadge}</span>
@@ -128,7 +129,7 @@ export const Conversation: React.FC<ConversationProps> = ({
                 </button>
 
                 {/* 💡 Explain Simply Button with Loading State */}
-                {!msg.isSimplified && (
+                {!isSimplifiedForCurrentLang && (
                   <button
                     onClick={() => onExplainSimply(msg.id, msg.text)}
                     disabled={isCurrentlyExplaining}

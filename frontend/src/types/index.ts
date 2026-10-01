@@ -58,6 +58,7 @@ export interface ChatMessage {
   sender: 'user' | 'assistant';
   text: string;
   simplifiedText?: string;
+  simplifiedLang?: LanguageCode;
   isSimplified?: boolean;
   timestamp: number;
   options?: MessageOption[];

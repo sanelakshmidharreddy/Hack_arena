@@ -267,15 +267,63 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
                 "hi": "सीधे शब्दों में: यह आपकी बेटी के लिए डाकघर की सरकारी बचत योजना है, जिसमें सरकार 8.2% का अच्छा ब्याज देती है।",
                 "en": "In very simple words: This is a government savings account at the Post Office for your daughter with 8.2% safe interest."
             }
+            explanations = {
+                "te": "మీరు కేవలం ₹250 కట్టి పోస్టాఫీసులో ఖాతా తెరవవచ్చు. పాప పెద్దయ్యాక చదువుకు ఈ డబ్బు ఎంతో ఉపయోగపడుతుంది.",
+                "ta": "நீங்கள் வெறும் ₹250 செலுத்தி தபால் அலுவலகத்தில் கணக்கு தொடங்கலாம். உங்கள் மகள் வளர்ந்ததும் படிப்புக்கு இது உதவும்.",
+                "hi": "आप नजदीकी डाकघर में मात्र ₹250 से यह खाता खोल सकते हैं। बेटी के बड़े होने पर यह पैसा उसकी पढ़ाई में बहुत काम आएगा।",
+                "en": "In simple words: You can start this account at your local Post Office with just ₹250. The government gives 8.2% safe interest to help with your daughter's future education."
+            }
             return AssistantResponse(
                 reply=replies.get(lang, replies["en"]),
                 intent="simplify_explanation",
                 needs_clarification=False,
                 question=None,
                 eligible="unknown",
-                explanation="మీరు కేవలం ₹250 కట్టి పోస్టాఫీసులో ఖాతా తెరవవచ్చు. పాప పెద్దయ్యాక చదువుకు ఈ డబ్బు ఎంతో ఉపయోగపడుతుంది.",
+                explanation=explanations.get(lang, explanations["en"]),
                 documents=docs[:2],
                 steps=steps,
+                next_action=next_act,
+                source="verified_demo_data",
+                confidence="verified"
+            )
+
+        elif scenario == "interest_rate":
+            replies = {
+                "te": "సుకున్య సమృద్ధి యోజన ఖాతాకు ప్రభుత్వం సంవత్సరానికి 8.2% అధిక వడ్డీని అందిస్తుంది.",
+                "ta": "சுகன்யா சம்ரித்தி கணக்கிற்கு அரசு ஆண்டுக்கு 8.2% அதிக வட்டியை வழங்குகிறது.",
+                "hi": "सुकन्या समृद्धि योजना में सरकार प्रति वर्ष 8.2% की उच्च ब्याज दर देती है।",
+                "en": "Sukanya Samriddhi Yojana offers a high government-backed interest rate of 8.2% per annum, calculated annually."
+            }
+            return AssistantResponse(
+                reply=replies.get(lang, replies["en"]),
+                intent="interest_rate_inquiry",
+                needs_clarification=False,
+                question=None,
+                eligible="unknown",
+                explanation="ప్రభుత్వం ప్రతి 3 నెలలకు ఒకసారి వడ్డీ రేట్లను సమీక్షిస్తుంది. ప్రస్తుతం ఇది అత్యధికంగా 8.2% వద్ద ఉంది.",
+                documents=[],
+                steps=[],
+                next_action=next_act,
+                source="verified_demo_data",
+                confidence="verified"
+            )
+
+        elif scenario == "deposit_limits":
+            replies = {
+                "te": "మీరు కనీసం ₹250 తో ఖాతా తెరవవచ్చు. సంవత్సరానికి గరిష్టంగా ₹1,50,000 వరకు జమ చేయవచ్చు.",
+                "ta": "நீங்கள் குறைந்தபட்சம் ₹250 செலுத்தி கணக்கு தொடங்கலாம். ஆண்டுக்கு அதிகபட்சம் ₹1,50,000 வரை சேமிக்கலாம்.",
+                "hi": "आप न्यूनतम ₹250 से खाता खोल सकते हैं। एक वित्तीय वर्ष में अधिकतम ₹1,50,000 तक जमा किया जा सकता है।",
+                "en": "You can open an account with a minimum deposit of ₹250. The maximum deposit limit is ₹1,50,000 per financial year."
+            }
+            return AssistantResponse(
+                reply=replies.get(lang, replies["en"]),
+                intent="deposit_limits_inquiry",
+                needs_clarification=False,
+                question=None,
+                eligible="unknown",
+                explanation="కనీసం ₹250 ప్రతి సంవత్సరం జమ చేయాలి. ఒక సంవత్సరంలో గరిష్ట పరిమితి ₹1.5 లక్షలు.",
+                documents=[],
+                steps=[],
                 next_action=next_act,
                 source="verified_demo_data",
                 confidence="verified"

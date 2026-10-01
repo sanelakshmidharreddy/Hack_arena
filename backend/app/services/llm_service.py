@@ -66,6 +66,32 @@ OUTPUT MUST BE VALID JSON ONLY (NO CODE BLOCKS, NO MARKDOWN FENCES):
 }}
 """
 
+
+def is_valid_language_script(text: str, lang: str) -> bool:
+    """
+    Validates that the generated text matches the requested language script:
+    - te: Telugu Unicode range (\u0C00-\u0C7F)
+    - ta: Tamil Unicode range (\u0B80-\u0BFF)
+    - hi: Devanagari Unicode range (\u0900-\u097F)
+    - en: Latin alphabet with NO Indic characters
+    """
+    if not text or not text.strip():
+        return False
+
+    import re
+    if lang == "te":
+        return bool(re.search(r'[\u0C00-\u0C7F]', text))
+    elif lang == "ta":
+        return bool(re.search(r'[\u0B80-\u0BFF]', text))
+    elif lang == "hi":
+        return bool(re.search(r'[\u0900-\u097F]', text))
+    elif lang == "en":
+        has_latin = bool(re.search(r'[a-zA-Z]', text))
+        has_indic = bool(re.search(r'[\u0900-\u0D7F]', text))
+        return has_latin and not has_indic
+    return True
+
+
 class LLMService:
     def __init__(self):
         self.gemini_key = GEMINI_API_KEY
@@ -225,25 +251,31 @@ class LLMService:
         parsed = self._clean_and_parse_json(raw_text)
         return AssistantResponse(**parsed)
 
-    def explain_simply(self, text: str, lang: str) -> str:
+    def explain_simply(
+        self,
+        text: str,
+        lang: str,
+        original_question: Optional[str] = None,
+        scheme_id: Optional[str] = "sukanya_samriddhi"
+    ) -> str:
         lang_names = {
-            "te": "Telugu (తెలుగు)",
-            "ta": "Tamil (தமிழ்)",
-            "hi": "Hindi (हिन्दी)",
-            "en": "Simple English"
+            "te": "Telugu",
+            "ta": "Tamil",
+            "hi": "Hindi",
+            "en": "English"
         }
-        lang_label = lang_names.get(lang, "Simple English")
+        language_name = lang_names.get(lang, "English")
+
         prompt = (
-            f"Explain this government scheme statement to a first-time rural woman user "
-            f"in extremely simple, comforting {lang_label}. "
-            f"Use everyday words and 2 to 3 short sentences. You may use a simple real-life analogy like saving small grains in a clay pot. "
-            f"STRICT RULE: Respond ONLY in {lang_label}. Do NOT add any new unverified facts or change the meaning.\n\n"
-            f"Statement to simplify: {text}"
+            f"Reply ONLY in {language_name} script and language. "
+            f"Rewrite the previous answer in a different, simpler way: 2 to 3 short sentences, everyday words, no jargon, no new facts beyond the supplied verified data. "
+            f"Do not translate; do not repeat the same sentences.\n\n"
+            f"Previous answer to simplify:\n{text}"
         )
 
-        # Check primary LLM first, then fallback LLM
         providers = [self.primary, self.fallback]
         for p in providers:
+            cand_text = None
             if p == "gemini" and self.gemini_key:
                 try:
                     url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.gemini_model}:generateContent?key={self.gemini_key}"
@@ -257,9 +289,7 @@ class LLMService:
                         resp = client.post(url, json=payload)
                         if resp.status_code == 200:
                             data = resp.json()
-                            cand = data.get("candidates", [])[0]["content"]["parts"][0]["text"].strip()
-                            if cand:
-                                return cand
+                            cand_text = data.get("candidates", [])[0]["content"]["parts"][0]["text"].strip()
                 except Exception as e:
                     logger.warning(f"Gemini explain simply failed: {e}")
             elif p == "groq" and self.groq_key:
@@ -268,7 +298,7 @@ class LLMService:
                     payload = {
                         "model": self.groq_model,
                         "messages": [
-                            {"role": "system", "content": f"You are a warm, simple language clarifier for rural women. Respond ONLY in {lang_label}."},
+                            {"role": "system", "content": f"You are a helpful clarifier. Reply ONLY in {language_name} script and language."},
                             {"role": "user", "content": prompt}
                         ],
                         "temperature": 0.2,
@@ -276,13 +306,20 @@ class LLMService:
                     with httpx.Client(timeout=8.0) as client:
                         resp = client.post("https://api.groq.com/openai/v1/chat/completions", headers=headers, json=payload)
                         if resp.status_code == 200:
-                            cand = resp.json()["choices"][0]["message"]["content"].strip()
-                            if cand:
-                                return cand
+                            cand_text = resp.json()["choices"][0]["message"]["content"].strip()
                 except Exception as e:
                     logger.warning(f"Groq explain simply failed: {e}")
 
-        # Resilient fallback: localized deterministic simplified summary
+            if cand_text:
+                if is_valid_language_script(cand_text, lang):
+                    return cand_text
+                else:
+                    logger.warning(
+                        f"LLM provider '{p}' returned text in wrong script for language '{lang}': {cand_text[:50]}... "
+                        f"Retrying with fallback LLM or deterministic fallback."
+                    )
+
+        # Resilient fallback: localized deterministic simplified summary in the requested language
         demo_resp = scheme_service.get_deterministic_path("explain_simply", lang)
         return demo_resp.explanation
 
@@ -314,7 +351,13 @@ class LLMService:
         if any(w in lower for w in ["understand", "simple", "అర్థం కాలేదు", "సులభంగా", "புரியவில்லை", "எளிமையாக", "समझ नहीं", "सरल"]):
             return scheme_service.get_deterministic_path("explain_simply", lang)
 
-        if any(w in lower for w in ["yes", "eligible", "అవును", "అర్హత", "ஆம்", "हाँ"]):
+        if any(w in lower for w in ["interest", "వడ్డీ", "வட்டி", "ब्याज", "rate", "8.2"]):
+            return scheme_service.get_deterministic_path("interest_rate", lang)
+
+        if any(w in lower for w in ["deposit", "minimum", "maximum", "250", "1,50,000", "1.5", "డబ్బు", "ఖర్చు", "రూపాయలు", "பணம்", "पैसे", "जमा"]):
+            return scheme_service.get_deterministic_path("deposit_limits", lang)
+
+        if any(w in lower for w in ["yes", "eligible", "అవును", "అర్హత", "ஆம்", "हाँ"]) or any(f"{a} year" in lower or f"{a} ఏళ్ల" in lower for a in range(1, 11)):
             return scheme_service.get_deterministic_path("eligible_yes", lang)
 
         if any(w in lower for w in ["document", "paper", "certificate", "కాగితాలు", "సర్టిఫికెట్", "ఆధార్", "ஆவணங்கள்", "சான்றிதழ்", "कागजात", "दस्तावेज"]):
