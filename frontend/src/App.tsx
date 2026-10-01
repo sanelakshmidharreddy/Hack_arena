@@ -10,6 +10,7 @@ import { PrivacyModal } from './components/PrivacyToggle';
 import { VoiceSettingsModal } from './components/VoiceSettingsModal';
 import { PostOfficeLocator } from './components/PostOfficeLocator';
 import { OfflineBanner } from './components/OfflineBanner';
+import { Phone, MapPin } from 'lucide-react';
 import {
   AppScreen,
   AssistantResponse,
@@ -18,8 +19,9 @@ import {
 } from './types';
 import { LanguageProvider, useLanguage } from './i18n/LanguageContext';
 import { useSpeechRecognition } from './hooks/useSpeechRecognition';
-import { useSpeechSynthesis } from './hooks/useSpeechSynthesis';
-import { sendMessage, explainSimply, resetSession, synthesizeCloudTTS } from './services/api';
+import { audioManager } from './services/audioManager';
+import { sendMessage, explainSimply, resetSession } from './services/api';
+import { vibrateSuccess, vibrateError, vibrateMicStart } from './utils/vibrate';
 
 function AppContent() {
   const { language, setLanguage, t, voiceLang } = useLanguage();
@@ -69,8 +71,18 @@ function AppContent() {
   const [sessionId] = useState<string>(() => 'session-' + Math.random().toString(36).substring(2, 9));
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [lastResponse, setLastResponse] = useState<AssistantResponse | null>(null);
+  const [isExplainingId, setIsExplainingId] = useState<string | null>(null);
+  const [isSpeakingAudio, setIsSpeakingAudio] = useState(false);
 
-  // Speech Hooks
+  // Listen to unified AudioManager speaking state
+  useEffect(() => {
+    const unsub = audioManager.subscribe((speaking) => {
+      setIsSpeakingAudio(speaking);
+    });
+    return () => unsub();
+  }, []);
+
+  // Speech Recognition Hook
   const {
     isListening,
     startListening,
@@ -79,46 +91,38 @@ function AppContent() {
     clearError,
   } = useSpeechRecognition(voiceLang);
 
-  const { isSpeaking, playBase64Audio, speak, stop: stopSpeaking } = useSpeechSynthesis();
-
-  // Sync speech state
+  // Sync Voice UI State
   useEffect(() => {
     if (isListening) {
       setVoiceState('listening');
-    } else if (isSpeaking) {
+    } else if (isSpeakingAudio) {
       setVoiceState('speaking');
     } else if (voiceState !== 'thinking') {
       setVoiceState('idle');
     }
-  }, [isListening, isSpeaking]);
+  }, [isListening, isSpeakingAudio]);
 
-  // Primary Audio playback: Tries Cloud TTS first, fallback to browser synthesis
+  // Stop audio whenever screen or language changes
+  useEffect(() => {
+    audioManager.stopAll();
+  }, [screen, language]);
+
+  // Primary Speak function using unified AudioManager
   const speakText = useCallback(
-    async (text: string) => {
-      stopSpeaking();
-      try {
-        const cloudResult = await synthesizeCloudTTS(text, language, undefined, voiceGender, voiceSpeed);
-        if (cloudResult.audioContent) {
-          const played = await playBase64Audio(cloudResult.audioContent);
-          if (played) return;
-        }
-      } catch (err) {
-        console.warn('Cloud TTS synthesis failed, using browser fallback', err);
-      }
-      speak(text, voiceLang, voiceSpeed, voiceGender);
+    (text: string) => {
+      audioManager.speakText(text, language, voiceGender, voiceSpeed);
     },
-    [language, voiceLang, voiceGender, voiceSpeed, playBase64Audio, speak, stopSpeaking]
+    [language, voiceGender, voiceSpeed]
   );
 
-  // Handle User Input (from Voice or Text)
+  // Handle User Input (Voice or Text)
   const handleProcessInput = useCallback(
     async (userInput: string, inputMode: 'voice' | 'text' = 'voice') => {
       if (!userInput.trim()) return;
 
-      stopSpeaking();
+      audioManager.stopAll();
       clearError();
 
-      // Append user message
       const userMsg: ChatMessage = {
         id: 'msg-' + Date.now(),
         sender: 'user',
@@ -146,19 +150,28 @@ function AppContent() {
         setMessages((prev) => [...prev, assistantMsg]);
         setVoiceState('idle');
 
-        // Audio-first experience: read response out loud
+        // Haptic feedback
+        if (response.eligible === 'yes') {
+          vibrateSuccess();
+        } else if (response.eligible === 'no') {
+          vibrateError();
+        }
+
+        // Voice-first: speak response out loud
         speakText(response.reply);
       } catch (err) {
         console.error('Failed to get assistant response', err);
         setVoiceState('error');
+        vibrateError();
       }
     },
-    [sessionId, language, speakText, stopSpeaking, clearError]
+    [sessionId, language, speakText, clearError]
   );
 
   // Handle Voice Listening
   const handleStartListening = () => {
-    stopSpeaking();
+    audioManager.stopAll();
+    vibrateMicStart();
     startListening((transcriptText) => {
       if (transcriptText) {
         handleProcessInput(transcriptText, 'voice');
@@ -171,10 +184,10 @@ function AppContent() {
     handleProcessInput(label, 'text');
   };
 
-  // Handle Explain Simply
+  // Handle Explain Simply with loading state & voice readback
   const handleExplainSimply = async (messageId: string, currentText: string) => {
     try {
-      setVoiceState('thinking');
+      setIsExplainingId(messageId);
       const result = await explainSimply(currentText, language);
       const simplified = result.simplified_text;
 
@@ -186,16 +199,16 @@ function AppContent() {
         )
       );
 
-      setVoiceState('idle');
+      setIsExplainingId(null);
       speakText(simplified);
     } catch {
-      setVoiceState('idle');
+      setIsExplainingId(null);
     }
   };
 
   // Handle Guide Me mode start
   const handleStartGuideMe = () => {
-    stopSpeaking();
+    audioManager.stopAll();
     setScreen('guide');
     if (lastResponse && lastResponse.steps.length > 0) {
       const firstStep = lastResponse.steps[0];
@@ -205,7 +218,7 @@ function AppContent() {
 
   // Handle Reset / Start Again
   const handleReset = async () => {
-    stopSpeaking();
+    audioManager.stopAll();
     stopListening();
     await resetSession(sessionId);
     setMessages([]);
@@ -228,16 +241,43 @@ function AppContent() {
       />
 
       {/* Main View Area */}
-      <main className="flex-1 flex flex-col items-center justify-start pb-12 w-full">
+      <main className="flex-1 flex flex-col items-center justify-start pb-16 w-full">
         {screen === 'home' && (
-          <VoiceHero
-            voiceState={voiceState}
-            onStartListening={handleStartListening}
-            onStopListening={stopListening}
-            onSubmitText={(txt) => handleProcessInput(txt, 'text')}
-            onSelectSampleNeed={(need) => handleProcessInput(need, 'text')}
-            errorMessage={speechError}
-          />
+          <div className="w-full">
+            <VoiceHero
+              voiceState={voiceState}
+              onStartListening={handleStartListening}
+              onStopListening={stopListening}
+              onSubmitText={(txt) => handleProcessInput(txt, 'text')}
+              onSelectSampleNeed={(need) => handleProcessInput(need, 'text')}
+              onListenPromptText={(txt) => speakText(txt)}
+              errorMessage={speechError}
+            />
+
+            {/* Persistent Landing Footer Strip with Call and Post Office */}
+            <div className="w-full max-w-xl mx-auto px-4 mt-8 pt-4 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-3">
+                <a
+                  href="tel:18002666868"
+                  className="py-3.5 px-4 rounded-2xl bg-white border-2 border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-2xs min-h-touch transition"
+                >
+                  <Phone className="w-4 h-4 text-jansakhi-green" />
+                  <span>{t.callForHelp}</span>
+                </a>
+
+                <button
+                  onClick={() => {
+                    audioManager.stopAll();
+                    setScreen('locator');
+                  }}
+                  className="py-3.5 px-4 rounded-2xl bg-white border-2 border-blue-200 text-jansakhi-navy hover:bg-blue-50 font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-2xs min-h-touch transition"
+                >
+                  <MapPin className="w-4 h-4 text-jansakhi-wave" />
+                  <span>{t.findPostOffice}</span>
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {screen === 'chat' && (
@@ -250,7 +290,8 @@ function AppContent() {
               onStartGuideMe={handleStartGuideMe}
               onViewDocuments={() => setScreen('result')}
               onFindPostOffice={() => setScreen('locator')}
-              isSpeaking={isSpeaking}
+              isSpeaking={isSpeakingAudio}
+              isExplainingId={isExplainingId}
             />
 
             {/* In-chat Voice Bar at bottom */}
@@ -319,7 +360,7 @@ function AppContent() {
         selectedLanguage={language}
         onSelectLanguage={(newLang) => {
           setLanguage(newLang);
-          stopSpeaking();
+          audioManager.stopAll();
         }}
         onClose={() => setIsLanguageModalOpen(false)}
       />

@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { Volume2, ArrowRight, ArrowLeft, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Volume2, ArrowRight, ArrowLeft } from 'lucide-react';
 import { StepItem } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
+import { audioManager } from '../services/audioManager';
+import { vibrateStepComplete } from '../utils/vibrate';
 
 interface GuideMeProps {
   steps: StepItem[];
@@ -29,7 +31,20 @@ export const GuideMe: React.FC<GuideMeProps> = ({
   const isLast = currentStepIdx === steps.length - 1;
   const progressPercent = ((currentStepIdx + 1) / steps.length) * 100;
 
+  // Speak ONLY the current step whenever the step index changes, cancelling prior audio
+  useEffect(() => {
+    audioManager.stopAll();
+    const textToSpeak = `${step.instruction}. ${step.detail}`;
+    onListen(textToSpeak);
+    vibrateStepComplete();
+
+    return () => {
+      audioManager.stopAll();
+    };
+  }, [currentStepIdx, step.instruction, step.detail, onListen]);
+
   const handleNext = () => {
+    audioManager.stopAll();
     if (isLast) {
       onFinish();
     } else {
@@ -38,12 +53,14 @@ export const GuideMe: React.FC<GuideMeProps> = ({
   };
 
   const handlePrev = () => {
+    audioManager.stopAll();
     if (!isFirst) {
       setCurrentStepIdx((prev) => prev - 1);
     }
   };
 
-  const handleListen = () => {
+  const handleListenAgain = () => {
+    audioManager.stopAll();
     const textToSpeak = `${step.instruction}. ${step.detail}`;
     onListen(textToSpeak);
   };
@@ -57,11 +74,14 @@ export const GuideMe: React.FC<GuideMeProps> = ({
       {/* Header bar */}
       <div className="flex items-center justify-between mb-4">
         <button
-          onClick={onExit}
+          onClick={() => {
+            audioManager.stopAll();
+            onExit();
+          }}
           className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1 min-h-touch px-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>← {t.repeat}</span>
+          <span>← {t.back}</span>
         </button>
         <span className="text-xs font-black uppercase tracking-wider bg-guide-blueLight text-jansakhi-navy px-3 py-1 rounded-full border border-blue-200">
           {t.guideMe}
@@ -101,10 +121,10 @@ export const GuideMe: React.FC<GuideMeProps> = ({
           {step.detail}
         </p>
 
-        {/* Listen Again and Explain Simply Buttons */}
+        {/* Only ONE Audio Button: Listen Again */}
         <div className="flex items-center justify-center gap-2 mb-6">
           <button
-            onClick={handleListen}
+            onClick={handleListenAgain}
             className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition min-h-touch"
           >
             <Volume2 className="w-4 h-4 text-jansakhi-wave" />

@@ -25,9 +25,17 @@ export interface Translations {
   sampleDocuments: string;
   sampleFindOffice: string;
   sampleExplainSimply: string;
+  // Top Customer Understanding Real Questions
+  questionSaveEducation: string;
+  questionPapersNeeded: string;
+  questionHowMuchMoney: string;
+  questionWhereToGo: string;
+  questionIsEligible: string;
+  questionWhoToCall: string;
   listenAgain: string;
   explainSimply: string;
   repeat: string;
+  back: string;
   startAgain: string;
   guideMe: string;
   viewDocuments: string;
@@ -56,6 +64,7 @@ export interface Translations {
   searchPinBtn: string;
   pinPlaceholder: string;
   callHelpline: string;
+  callForHelp: string;
   offlineBanner: string;
   callNow: string;
   voiceSettings: string;
@@ -63,6 +72,7 @@ export interface Translations {
   voiceGender: string;
   femaleVoice: string;
   maleVoice: string;
+  vibrationToggle: string;
   navigate: string;
   openStatus: string;
   closedStatus: string;
@@ -99,9 +109,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     sampleDocuments: 'ఏ కాగితాలు కావాలి?',
     sampleFindOffice: 'సమీప పోస్టాఫీస్ ఎక్కడ ఉంది?',
     sampleExplainSimply: 'నాకు అర్థం కాలేదు, సులభంగా చెప్పండి',
+    questionSaveEducation: 'నా కూతురి చదువు కోసం పొదుపు చేయాలనుకుంటున్నాను',
+    questionPapersNeeded: 'నాకు ఏయే కాగితాలు కావాలి?',
+    questionHowMuchMoney: 'ఎంత డబ్బు కట్టాలి?',
+    questionWhereToGo: 'నేను ఎక్కడికి వెళ్లాలి?',
+    questionIsEligible: 'నా కూతురు ఈ పథకానికి అర్హురాలా?',
+    questionWhoToCall: 'సహాయం కోసం ఎవరికి ఫోన్ చేయాలి?',
     listenAgain: 'మళ్లీ వినండి',
     explainSimply: 'సులభంగా చెప్పండి',
     repeat: 'మరోసారి చెప్పండి',
+    back: 'వెనుకకు',
     startAgain: 'మొదటినుండి ప్రారంభించండి',
     guideMe: 'స్టెప్ బై స్టెప్ గైడ్ చేయండి (గైడ్ మీ)',
     viewDocuments: 'కావాల్సిన కాగితాలు చూడండి',
@@ -130,6 +147,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     searchPinBtn: 'వెతకండి',
     pinPlaceholder: 'ఉదా: 500001 లేదా గ్రామం పేరు',
     callHelpline: 'ఉచిత హెల్ప్‌లైన్‌కు కాల్ చేయండి',
+    callForHelp: 'సహాయం కోసం కాల్ చేయండి',
     offlineBanner: 'మీరు ప్రస్తుతం ఆఫ్‌లైన్‌లో ఉన్నారు. అయినా పోస్టాఫీస్ హెల్ప్‌లైన్‌కు నేరుగా కాల్ చేయవచ్చు:',
     callNow: 'ఇప్పుడే కాల్ చేయండి',
     voiceSettings: 'వాయిస్ సెట్టింగ్‌లు',
@@ -137,6 +155,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     voiceGender: 'స్వరం ఎంపిక',
     femaleVoice: 'మహిళా స్వరం (Female)',
     maleVoice: 'పురుష స్వరం (Male)',
+    vibrationToggle: 'స్పర్శ ప్రకంపనలు (Vibration)',
     navigate: 'రూట్ మ్యాప్ (Navigate)',
     openStatus: 'ప్రస్తుతం తెరిచి ఉంది',
     closedStatus: 'ప్రస్తుతం మూసివేయబడింది',
@@ -171,9 +190,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     sampleDocuments: 'என்னென்ன ஆவணங்கள் தேவை?',
     sampleFindOffice: 'அருகிலுள்ள தபால் அலுவலகம் எங்கே உள்ளது?',
     sampleExplainSimply: 'எனக்கு புரியவில்லை, எளிமையாக சொல்லுங்கள்',
+    questionSaveEducation: 'என் மகளின் கல்விக்காக சேமிக்க விரும்புகிறேன்',
+    questionPapersNeeded: 'எனக்கு என்ன ஆவணங்கள் தேவை?',
+    questionHowMuchMoney: 'எவ்வளவு பணம் செலுத்த வேண்டும்?',
+    questionWhereToGo: 'நான் எங்கு செல்ல வேண்டும்?',
+    questionIsEligible: 'என் மகள் இதற்கு தகுதியானவளா?',
+    questionWhoToCall: 'உதவிக்கு யாரை அழைக்க வேண்டும்?',
     listenAgain: 'மீண்டும் கேளுங்கள்',
     explainSimply: 'எளிதாக விளக்குங்கள்',
     repeat: 'மீண்டும் சொல்லுங்கள்',
+    back: 'பின்னால்',
     startAgain: 'மீண்டும் தொடங்கவும்',
     guideMe: 'படிப்படியாக வழிகாட்டுங்கள்',
     viewDocuments: 'தேவையான ஆவணங்களைப் பார்க்கவும்',
@@ -202,6 +228,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     searchPinBtn: 'தேடுக',
     pinPlaceholder: 'உதா: 600001 அல்லது ஊர் பெயர்',
     callHelpline: 'இலவச உதவி எண்ணை அழைக்கவும்',
+    callForHelp: 'உதவிக்கு அழைக்கவும்',
     offlineBanner: 'நீங்கள் ஆஃப்லைனில் உள்ளீர்கள். தபால் உதவி எண்ணை நேரடியாக அழைக்கலாம்:',
     callNow: 'இப்போதே அழைக்கவும்',
     voiceSettings: 'குரல் அமைப்புகள்',
@@ -209,6 +236,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     voiceGender: 'குரல் தேர்வு',
     femaleVoice: 'பெண் குரல் (Female)',
     maleVoice: 'ஆண் குரல் (Male)',
+    vibrationToggle: 'அதிர்வு (Vibration)',
     navigate: 'வழிசெலுத்தவும் (Navigate)',
     openStatus: 'தற்போது திறந்துள்ளது',
     closedStatus: 'தற்போது மூடப்பட்டுள்ளது',
@@ -243,9 +271,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     sampleDocuments: 'कौन-कौन से कागजात चाहिए?',
     sampleFindOffice: 'नजदीकी डाकघर कहाँ है?',
     sampleExplainSimply: 'मुझे समझ नहीं आया, सरल भाषा में समझाइए',
+    questionSaveEducation: 'मैं अपनी बेटी की पढ़ाई के लिए बचत करना चाहती हूँ',
+    questionPapersNeeded: 'मुझे कौन से कागजात चाहिए?',
+    questionHowMuchMoney: 'कितने पैसे जमा करने होंगे?',
+    questionWhereToGo: 'मुझे कहाँ जाना होगा?',
+    questionIsEligible: 'क्या मेरी बेटी इसके लिए पात्र है?',
+    questionWhoToCall: 'मदद के लिए किसको फोन करूँ?',
     listenAgain: 'फिर से सुनें',
     explainSimply: 'सरल भाषा में समझाइए',
     repeat: 'दोहराएं',
+    back: 'वापस',
     startAgain: 'शुरुआत से शुरू करें',
     guideMe: 'कदम-दर-कदम गाइड करें (गाइड मी)',
     viewDocuments: 'आवश्यक कागजात देखें',
@@ -274,6 +309,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     searchPinBtn: 'खोजें',
     pinPlaceholder: 'उदा: 110001 या गांव का नाम',
     callHelpline: 'निःशुल्क हेल्पलाइन पर कॉल करें',
+    callForHelp: 'मदद के लिए कॉल करें',
     offlineBanner: 'आप ऑफलाइन हैं। डाकघर हेल्पलाइन पर सीधे कॉल कर सकते हैं:',
     callNow: 'अभी कॉल करें',
     voiceSettings: 'आवाज सेटिंग्स',
@@ -281,6 +317,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     voiceGender: 'आवाज का चयन',
     femaleVoice: 'महिला आवाज (Female)',
     maleVoice: 'पुरुष आवाज (Male)',
+    vibrationToggle: 'कंपन (Vibration)',
     navigate: 'रास्ता देखें (Navigate)',
     openStatus: 'अभी खुला है',
     closedStatus: 'अभी बंद है',
@@ -315,9 +352,16 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     sampleDocuments: 'What documents are required?',
     sampleFindOffice: 'Where is the nearest Post Office?',
     sampleExplainSimply: 'I don\'t understand, explain simply',
+    questionSaveEducation: 'I want to save for my daughter\'s education',
+    questionPapersNeeded: 'What papers do I need?',
+    questionHowMuchMoney: 'How much money do I need?',
+    questionWhereToGo: 'Where do I go?',
+    questionIsEligible: 'Is my daughter eligible?',
+    questionWhoToCall: 'Who can I call?',
     listenAgain: 'Listen Again',
     explainSimply: 'Explain Simply',
     repeat: 'Repeat',
+    back: 'Back',
     startAgain: 'Start Again',
     guideMe: 'Guide Me Step-by-Step',
     viewDocuments: 'View Required Documents',
@@ -346,6 +390,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     searchPinBtn: 'Search',
     pinPlaceholder: 'e.g., 500001 or village name',
     callHelpline: 'Call Free Helpline',
+    callForHelp: 'Call for help',
     offlineBanner: 'You are currently offline. You can call the official helpline directly:',
     callNow: 'Call Now',
     voiceSettings: 'Voice Settings',
@@ -353,6 +398,7 @@ export const TRANSLATIONS: Record<SupportedLanguage, Translations> = {
     voiceGender: 'Voice Selection',
     femaleVoice: 'Female Voice',
     maleVoice: 'Male Voice',
+    vibrationToggle: 'Vibration feedback',
     navigate: 'Directions (Navigate)',
     openStatus: 'Open Now',
     closedStatus: 'Closed',

@@ -1,8 +1,23 @@
 import React, { useState } from 'react';
-import { Mic, Keyboard, Volume2, AlertCircle, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import {
+  Mic,
+  Keyboard,
+  Volume2,
+  AlertCircle,
+  Loader2,
+  Sparkles,
+  CheckCircle2,
+  GraduationCap,
+  FileText,
+  Coins,
+  MapPin,
+  HelpCircle,
+  PhoneCall,
+} from 'lucide-react';
 import { VoiceState } from '../types';
 import { AudioWaveform } from './AudioWaveform';
 import { useLanguage } from '../i18n/LanguageContext';
+import { vibrateMicStart } from '../utils/vibrate';
 
 interface VoiceHeroProps {
   voiceState: VoiceState;
@@ -10,6 +25,7 @@ interface VoiceHeroProps {
   onStopListening: () => void;
   onSubmitText: (text: string) => void;
   onSelectSampleNeed: (text: string) => void;
+  onListenPromptText?: (text: string) => void;
   errorMessage?: string | null;
 }
 
@@ -19,6 +35,7 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
   onStopListening,
   onSubmitText,
   onSelectSampleNeed,
+  onListenPromptText,
   errorMessage,
 }) => {
   const { t } = useLanguage();
@@ -34,6 +51,7 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
     if (isListening) {
       onStopListening();
     } else {
+      vibrateMicStart();
       onStartListening();
     }
   };
@@ -47,15 +65,48 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
     }
   };
 
-  const sampleQuestions = [
-    t.sampleNeedHelp,
-    t.sampleIsEligible,
-    t.sampleDocuments,
-    t.sampleFindOffice,
+  // 6 Top Real Questions from <customer_understanding>
+  const suggestionCards = [
+    {
+      id: 'save_education',
+      text: t.questionSaveEducation,
+      icon: GraduationCap,
+      color: 'bg-emerald-50 text-jansakhi-green border-emerald-200',
+    },
+    {
+      id: 'papers_needed',
+      text: t.questionPapersNeeded,
+      icon: FileText,
+      color: 'bg-blue-50 text-jansakhi-wave border-blue-200',
+    },
+    {
+      id: 'how_much_money',
+      text: t.questionHowMuchMoney,
+      icon: Coins,
+      color: 'bg-amber-50 text-amber-800 border-amber-200',
+    },
+    {
+      id: 'where_to_go',
+      text: t.questionWhereToGo,
+      icon: MapPin,
+      color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    },
+    {
+      id: 'is_eligible',
+      text: t.questionIsEligible,
+      icon: HelpCircle,
+      color: 'bg-rose-50 text-rose-700 border-rose-200',
+    },
+    {
+      id: 'who_to_call',
+      text: t.questionWhoToCall,
+      icon: PhoneCall,
+      color: 'bg-teal-50 text-teal-800 border-teal-200',
+    },
   ];
 
   return (
-    <div className="w-full flex flex-col items-center justify-center py-4 px-4 max-w-lg mx-auto text-center">
+    <div className="w-full flex flex-col items-center justify-center py-4 px-4 max-w-xl mx-auto text-center">
       {/* Large Centred Brand Logo */}
       <div className="mb-4 flex flex-col items-center">
         <img
@@ -199,24 +250,47 @@ export const VoiceHero: React.FC<VoiceHeroProps> = ({
         )}
       </div>
 
-      {/* Quick Example Need Chips */}
+      {/* 6 Real Questions Suggestion Cards from <customer_understanding> */}
       <div className="mt-7 w-full text-left">
-        <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-2.5">
+        <p className="text-xs font-black text-slate-500 uppercase tracking-wider mb-3">
           {t.samplePromptHeader}
         </p>
-        <div className="flex flex-col gap-2">
-          {sampleQuestions.map((need, idx) => (
-            <button
-              key={idx}
-              onClick={() => onSelectSampleNeed(need)}
-              className="w-full text-left p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-jansakhi-wave hover:bg-blue-50/50 text-slate-800 text-sm font-bold transition flex items-center justify-between group min-h-touch shadow-2xs"
-            >
-              <span>"{need}"</span>
-              <span className="text-jansakhi-wave font-black opacity-0 group-hover:opacity-100 transition text-xs">
-                →
-              </span>
-            </button>
-          ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          {suggestionCards.map((card) => {
+            const Icon = card.icon;
+            return (
+              <div
+                key={card.id}
+                className="p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-jansakhi-green hover:shadow-soft transition flex items-center justify-between gap-3 shadow-2xs group"
+              >
+                <button
+                  onClick={() => onSelectSampleNeed(card.text)}
+                  className="flex items-center gap-3 text-left flex-1 min-h-touch"
+                >
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${card.color}`}>
+                    <Icon className="w-5 h-5" />
+                  </span>
+                  <span className="text-sm font-bold text-jansakhi-navy leading-snug group-hover:text-jansakhi-green transition">
+                    {card.text}
+                  </span>
+                </button>
+
+                {onListenPromptText && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onListenPromptText(card.text);
+                    }}
+                    className="p-2 rounded-xl text-slate-400 hover:text-jansakhi-wave hover:bg-slate-100 transition min-h-touch min-w-touch flex items-center justify-center shrink-0"
+                    aria-label={t.listenAgain}
+                    title={t.listenAgain}
+                  >
+                    <Volume2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

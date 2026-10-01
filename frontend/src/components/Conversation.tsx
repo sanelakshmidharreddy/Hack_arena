@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, Sparkles, ArrowRight, CheckCircle2, RotateCcw, HelpCircle, FileText, Check, AlertTriangle } from 'lucide-react';
+import { Volume2, Sparkles, ArrowRight, CheckCircle2, HelpCircle, FileText, Check, AlertTriangle, Loader2 } from 'lucide-react';
 import { ChatMessage } from '../types';
 import { useLanguage } from '../i18n/LanguageContext';
 
@@ -12,6 +12,7 @@ interface ConversationProps {
   onViewDocuments: () => void;
   onFindPostOffice?: () => void;
   isSpeaking: boolean;
+  isExplainingId?: string | null;
 }
 
 export const Conversation: React.FC<ConversationProps> = ({
@@ -21,8 +22,8 @@ export const Conversation: React.FC<ConversationProps> = ({
   onListenMessage,
   onStartGuideMe,
   onViewDocuments,
-  onFindPostOffice,
   isSpeaking,
+  isExplainingId,
 }) => {
   const { t } = useLanguage();
 
@@ -46,52 +47,48 @@ export const Conversation: React.FC<ConversationProps> = ({
 
         const isEligible = msg.data?.eligible === 'yes';
         const isIneligible = msg.data?.eligible === 'no';
+        const isCurrentlyExplaining = isExplainingId === msg.id;
 
         // Assistant Message Card
         return (
-          <div key={msg.id} className="flex flex-col space-y-3">
-            {/* Main AI Response Box */}
-            <div className="w-full rounded-3xl bg-white border border-slate-200 p-5 shadow-soft">
-              {/* Verified Source Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-jansakhi-green">
-                  <CheckCircle2 className="w-4 h-4 text-jansakhi-green" />
-                  <span>{t.verifiedBadge}</span>
+          <div key={msg.id} className="space-y-3">
+            <div className="rounded-3xl rounded-tl-none p-5 sm:p-6 bg-white border border-slate-200 shadow-soft space-y-4">
+              {/* Badge indicating simplified explanation if applicable */}
+              {msg.isSimplified && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
+                  <Sparkles className="w-3.5 h-3.5 text-jansakhi-saffron" />
+                  <span>{t.simplifiedExplanationBadge}</span>
                 </div>
-                {msg.isSimplified && (
-                  <span className="text-[11px] font-black bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">
-                    {t.simplifiedExplanationBadge}
-                  </span>
-                )}
-              </div>
+              )}
 
-              {/* Message Content */}
-              <div className="text-base sm:text-lg font-bold text-slate-800 leading-relaxed mb-4">
+              {/* Main Response Text */}
+              <p className="text-lg sm:text-xl font-bold text-jansakhi-navy leading-relaxed">
                 {displayText}
-              </div>
+              </p>
 
-              {/* Clarification Question if present (One question at a time) */}
+              {/* Clarification Question if needs details (One question at a time) */}
               {msg.data?.question && (
-                <div className="mt-3 p-4 rounded-2xl bg-blue-50/70 border-2 border-blue-200">
-                  <p className="text-xs font-black text-jansakhi-navy mb-2 flex items-center gap-1.5 uppercase tracking-wide">
-                    <HelpCircle className="w-4 h-4 text-jansakhi-saffron" />
-                    <span>{t.oneQuestionTitle}</span>
-                  </p>
-                  <p className="text-base sm:text-lg font-black text-slate-900 mb-3">
-                    {msg.data.question}
-                  </p>
+                <div className="p-4 rounded-2xl bg-blue-50/70 border border-blue-100 space-y-3">
+                  <div className="flex items-start gap-2">
+                    <HelpCircle className="w-5 h-5 text-jansakhi-wave shrink-0 mt-0.5" />
+                    <p className="text-base font-black text-jansakhi-navy">
+                      {msg.data.question}
+                    </p>
+                  </div>
 
-                  {/* One Question At A Time Options */}
-                  {msg.options && msg.options.length > 0 && isLast && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                      {msg.options.map((opt) => (
+                  {/* 2 Big Clear Choice Buttons */}
+                  {msg.data.question_options && msg.data.question_options.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      {msg.data.question_options.map((opt, optIdx) => (
                         <button
-                          key={opt.value}
+                          key={optIdx}
                           onClick={() => onOptionSelect(opt.value, opt.label)}
-                          className="w-full py-3.5 px-4 rounded-xl bg-white border-2 border-jansakhi-navy text-jansakhi-navy font-bold text-sm sm:text-base hover:bg-jansakhi-navy hover:text-white transition shadow-xs min-h-touch flex items-center justify-center gap-2"
+                          className="w-full py-3.5 px-4 rounded-xl bg-white border-2 border-slate-200 hover:border-jansakhi-green hover:bg-emerald-50 text-jansakhi-navy font-black text-sm transition flex items-center justify-between min-h-touch shadow-2xs group"
                         >
-                          <Check className="w-4 h-4" />
                           <span>{opt.label}</span>
+                          <span className="w-6 h-6 rounded-full bg-slate-100 group-hover:bg-jansakhi-green group-hover:text-white flex items-center justify-center transition">
+                            <Check className="w-3.5 h-3.5" />
+                          </span>
                         </button>
                       ))}
                     </div>
@@ -99,39 +96,58 @@ export const Conversation: React.FC<ConversationProps> = ({
                 </div>
               )}
 
+              {/* Eligibility Status Banner */}
+              {isEligible && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 text-jansakhi-green border border-emerald-200 text-sm font-black">
+                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span>{t.eligibleTitle}</span>
+                </div>
+              )}
+
+              {isIneligible && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-sm font-bold">
+                  <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span>{t.ineligibleTitle}</span>
+                </div>
+              )}
+
               {/* Quick Action Toolbar for Assistant message */}
               <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-2">
-                {/* 🔊 Listen / Listen Again Button */}
+                {/* 🔊 Only ONE Audio Control: Listen Again */}
                 <button
                   onClick={() => onListenMessage(displayText)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition min-h-touch"
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition min-h-touch ${
+                    isSpeaking
+                      ? 'bg-blue-100 text-jansakhi-navy border border-blue-300'
+                      : 'bg-slate-100 hover:bg-slate-200 text-slate-800'
+                  }`}
                   aria-label={t.listenAgain}
                 >
                   <Volume2 className="w-4 h-4 text-jansakhi-wave" />
                   <span>{t.listenAgain}</span>
                 </button>
 
-                {/* 💡 Explain Simply Button */}
+                {/* 💡 Explain Simply Button with Loading State */}
                 {!msg.isSimplified && (
                   <button
                     onClick={() => onExplainSimply(msg.id, msg.text)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition min-h-touch"
+                    disabled={isCurrentlyExplaining}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition min-h-touch disabled:opacity-60"
                     aria-label={t.explainSimply}
                   >
-                    <Sparkles className="w-4 h-4 text-jansakhi-saffron" />
-                    <span>{t.explainSimply}</span>
+                    {isCurrentlyExplaining ? (
+                      <>
+                        <Loader2 className="w-4 h-4 text-jansakhi-saffron animate-spin" />
+                        <span>{t.thinkingState}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-jansakhi-saffron" />
+                        <span>{t.explainSimply}</span>
+                      </>
+                    )}
                   </button>
                 )}
-
-                {/* 🔁 Repeat Button */}
-                <button
-                  onClick={() => onListenMessage(displayText)}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition min-h-touch"
-                  aria-label={t.repeat}
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>{t.repeat}</span>
-                </button>
               </div>
             </div>
 
