@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from app.models.request_models import MessageRequest, ExplainRequest, ResetRequest
 from app.models.response_models import AssistantResponse, ExplainResponse
-from app.services.gemini_service import gemini_service
+from app.services.grok_service import grok_service
 from app.services.scheme_service import scheme_service
 from app.services.session_service import session_service
 
@@ -17,8 +17,8 @@ def handle_message(req: MessageRequest):
     session = session_service.get_or_create_session(req.session_id, req.language)
     history = session.get("history", [])
 
-    # Process message via Gemini Service (with verified scheme grounding)
-    response = gemini_service.process_message(
+    # Process message via xAI Grok Service (with verified scheme grounding)
+    response = grok_service.process_message(
         session_id=req.session_id,
         lang=req.language,
         message=req.message,
@@ -38,7 +38,7 @@ def handle_explain(req: ExplainRequest):
     Simplifies complex government explanations for a first-time rural woman
     without adding any new facts or hallucinations.
     """
-    simplified = gemini_service.explain_simply(req.text, req.language)
+    simplified = grok_service.explain_simply(req.text, req.language)
     return ExplainResponse(simplified_text=simplified, source="verified_simplification")
 
 @router.get("/service")

@@ -10,5 +10,5 @@ services:
     environment:
       - PORT=8080
       - ENVIRONMENT=production
-      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - XAI_API_KEY=${XAI_API_KEY:-}
     restart: unless-stopped

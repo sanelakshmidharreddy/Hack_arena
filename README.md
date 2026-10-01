@@ -5,9 +5,9 @@
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB?style=flat&logo=react)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6+-3178C6?style=flat&logo=typescript)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4+-38B2AC?style=flat&logo=tailwind-css)](https://tailwindcss.com)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-2.5_Flash-4285F4?style=flat&logo=google)](https://ai.google.dev)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat&logo=docker)](https://www.docker.com)
-[![Target: Cloud Run](https://img.shields.io/badge/Deploy-Google_Cloud_Run-4285F4?style=flat&logo=google-cloud)](https://cloud.google.com/run)
+[![xAI Grok](https://img.shields.io/badge/xAI_Grok-grok--2--latest-000000?style=flat&logo=x)](https://x.ai)
+[![Backend: Render](https://img.shields.io/badge/Backend-Render-46E3B7?style=flat&logo=render)](https://render.com)
+[![Frontend: Vercel](https://img.shields.io/badge/Frontend-Vercel-000000?style=flat&logo=vercel)](https://vercel.com)
 
 ---
 
@@ -36,7 +36,7 @@ UNDERSTAND (AI extracts core intent without demanding scheme names)
     ↓
 ONE QUESTION AT A TIME (AI clarifies eligibility with simple yes/no touch buttons)
     ↓
-CHECK VERIFIED SCHEME DATA (Strict grounding — Gemini never hallucinates or invents rules)
+CHECK VERIFIED SCHEME DATA (Strict grounding — Grok never hallucinates or invents rules)
     ↓
 EXPLAIN SIMPLY (Translates official rules into intuitive, comforting terms)
     ↓
@@ -67,7 +67,7 @@ CLEAR NEXT ACTION ("Visit your nearest Post Office tomorrow at 10 AM with Aadhaa
 2. **One Question at a Time**:
    - Eliminates intimidating multi-field forms. The AI asks one simple question (e.g. *"Is your daughter 10 years or younger?"*) with large touch-friendly buttons (`[YES]` `[NO]`).
 3. **Verified Information Layer**:
-   - AI logic is strictly decoupled from the factual scheme dataset (`verified_schemes.json`). Gemini is prevented from inventing criteria, fees, or documents.
+   - AI logic is strictly decoupled from the factual scheme dataset (`verified_schemes.json`). Grok is grounded with verified scheme facts and prevented from inventing criteria, fees, or documents.
 4. **"Explain Simply" Capability**:
    - One tap on *"సులభంగా చెప్పండి (Explain Simply)"* distills complex rules into everyday language without introducing new or unverified facts.
 5. **"Guide Me" Step-by-Step Mode**:
@@ -89,32 +89,32 @@ CLEAR NEXT ACTION ("Visit your nearest Post Office tomorrow at 10 AM with Aadhaa
 
 ```
 ┌────────────────────────────────────────────────────────┐
-│             React + TypeScript Frontend                │
+│             React + TypeScript Frontend (Vercel)       │
 │  - Tailwind CSS + Noto Sans Indic Fonts                │
 │  - Web Speech API (Recognition + Synthesis)            │
 │  - Mobile-First UI (Large touch targets, Audio waves)  │
 └───────────────────────────▲────────────────────────────┘
-                            │ HTTP JSON / REST
+                            │ HTTP JSON / REST (VITE_API_URL)
 ┌───────────────────────────▼────────────────────────────┐
-│                    FastAPI Backend                     │
+│                    FastAPI Backend (Render)            │
 │  - Pydantic Request / Response Validation              │
 │  - Session Manager (Ephemeral, Privacy-Safe)           │
-│  - Rate-Limited & Input-Sanitized                      │
+│  - CORS Middleware configured for Vercel Domains       │
 └───────▲────────────────────────────────────────▲───────┘
         │                                        │
 ┌───────▼────────────────────────┐ ┌─────────────▼───────────────┐
-│       Google Gemini API        │ │    Verified Scheme Engine   │
-│  - google-genai SDK            │ │  - verified_schemes.json    │
-│  - Structured JSON Output      │ │  - Deterministic Fallbacks  │
-│  - System Prompt Grounding     │ │  - Official Govt Standards  │
+│         xAI Grok API           │ │    Verified Scheme Engine   │
+│  - https://api.x.ai/v1         │ │  - verified_schemes.json    │
+│  - Model: grok-2-latest        │ │  - Deterministic Fallbacks  │
+│  - Structured JSON Output      │ │  - Official Govt Standards  │
 └────────────────────────────────┘ └─────────────────────────────┘
 ```
 
-- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons.
-- **Backend**: Python 3.11+, FastAPI, Uvicorn, Pydantic v2.
-- **AI**: Google Gemini API (`google-genai` SDK) with model `gemini-2.5-flash`.
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, Lucide Icons (deployed on **Vercel**).
+- **Backend**: Python 3.11+, FastAPI, Uvicorn, Pydantic v2 (deployed on **Render**).
+- **AI**: xAI Grok API (`https://api.x.ai/v1`) using `grok-2-latest` (or Groq fallback).
 - **Data**: Verified Government Scheme JSON schema.
-- **Container / Deployment**: Multi-stage Docker, Google Cloud Run (`asia-south1`).
+- **Testing**: Pytest with automated coverage for all scenarios and fallbacks.
 
 ---
 
@@ -141,7 +141,7 @@ Hackarena/
 │   │   │   ├── languages.ts         # Native language strings and scripts
 │   │   │   └── demoPaths.ts         # Deterministic offline demo scenarios
 │   │   ├── services/
-│   │   │   └── api.ts               # FastAPI connector with instant fallback
+│   │   │   └── api.ts               # FastAPI connector supporting VITE_API_URL
 │   │   ├── types/
 │   │   │   └── index.ts             # TypeScript interfaces
 │   │   ├── App.tsx                  # Root screen coordinator
@@ -157,7 +157,7 @@ Hackarena/
 │   │   │   ├── request_models.py    # Validated input schemas
 │   │   │   └── response_models.py   # Structured output schemas
 │   │   ├── services/
-│   │   │   ├── gemini_service.py    # Gemini client with system prompt grounding
+│   │   │   ├── grok_service.py      # xAI Grok client with system prompt grounding
 │   │   │   ├── scheme_service.py    # Verified scheme engine & demo paths
 │   │   │   └── session_service.py   # In-memory privacy session tracker
 │   │   ├── routes/
@@ -170,7 +170,7 @@ Hackarena/
 │   │   └── test_explain.py          # Explain simply and session tests
 │   ├── requirements.txt
 │   └── .env.example
-├── Dockerfile                       # Multi-stage production container for Cloud Run
+├── Dockerfile                       # Multi-stage container for deployment
 ├── docker-compose.yml
 ├── .dockerignore
 ├── .gitignore
@@ -185,74 +185,62 @@ Hackarena/
 - Node.js v18+ and npm
 - Python 3.10+
 
-### Option A: Running with Unified FastAPI Backend (Fastest)
-1. **Build frontend assets**:
-   ```bash
-   cd frontend
-   npm install
-   npm run build
-   cd ..
-   ```
-2. **Install backend dependencies**:
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-3. **Run FastAPI Server**:
-   ```bash
-   uvicorn app.main:app --port 8000 --reload
-   ```
-4. Open your browser at **`http://localhost:8000`**. The app is fully live with both frontend and backend served on a single port!
+### Step 1: Backend Setup
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-### Option B: Running Frontend & Backend in Development Mode
-1. **Start Backend**:
-   ```bash
-   cd backend
-   uvicorn app.main:app --port 8000 --reload
-   ```
-2. **Start Frontend (in another terminal)**:
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-3. Open **`http://localhost:3000`** (Vite proxies all `/api` and `/health` requests to `http://localhost:8000`).
+Create `backend/.env`:
+```bash
+XAI_API_KEY=your_xai_api_key_here
+PORT=8000
+ENVIRONMENT=development
+```
+
+Start the backend:
+```bash
+python -m uvicorn app.main:app --port 8000 --reload
+```
+
+### Step 2: Frontend Setup
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Open **`http://localhost:3000`** in your browser.
 
 ---
 
-## 8. Environment Variables
+## 8. Deployment: Render (Backend) + Vercel (Frontend)
 
-Create a `.env` file in `backend/` based on `backend/.env.example`:
+### Deploying Backend to Render
+1. Create a new **Web Service** on [Render](https://render.com) connected to your GitHub repository.
+2. Configure settings:
+   - **Root Directory**: `backend`
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+3. Add Environment Variables in Render Dashboard:
+   - `XAI_API_KEY`: `your_xai_api_key_here`
+   - `ENVIRONMENT`: `production`
+   - `FRONTEND_URL`: `https://your-frontend.vercel.app`
+4. Deploy. Once live, test health at: `https://your-backend.onrender.com/health`
 
-```bash
-# Optional: Provide Google Gemini API Key for dynamic live reasoning
-# If left empty, the application uses the verified deterministic scheme engine seamlessly!
-GEMINI_API_KEY=your_gemini_api_key_here
-
-# Server Configuration
-PORT=8000
-ENVIRONMENT=development
-
-# Optional: Specific Frontend URL for production CORS
-FRONTEND_URL=https://your-frontend-domain.com
-```
-
-> **Security Note**: Never commit `.env` or hardcode API keys in the frontend repository.
+### Deploying Frontend to Vercel
+1. Import your GitHub repository into [Vercel](https://vercel.com).
+2. Configure settings:
+   - **Root Directory**: `frontend`
+   - **Framework Preset**: `Vite`
+3. Add Environment Variable:
+   - `VITE_API_URL`: `https://your-backend.onrender.com`
+4. Deploy. Vercel will build the React SPA and connect directly to your Render backend.
 
 ---
 
 ## 9. Testing & Quality Assurance
 
-The backend includes a comprehensive pytest suite covering all requirements:
-- `test_health`: Verifies `/health` returns HTTP 200 with `{ "status": "ok" }`.
-- `test_valid_message`: Tests conversational Telugu and English queries.
-- `test_invalid_message`: Tests 422 rejection on unsupported languages.
-- `test_empty_message`: Tests rejection on empty or whitespace strings.
-- `test_scheme_eligibility`: Tests answering age criteria leading to `eligible: "yes"`.
-- `test_unknown_service`: Ensures AI does not hallucinate services outside verified data.
-- `test_gemini_failure_and_safe_fallback`: Simulates API failure and verifies safe graceful recovery.
-- `test_explain_simply`: Tests simplification without fact alteration.
-
-Run the test suite:
+Run the automated pytest test suite:
 ```bash
 cd backend
 python -m pytest tests/ -v
@@ -271,45 +259,13 @@ tests/test_message.py::test_empty_message PASSED                         [ 66%]
 tests/test_message.py::test_scheme_eligibility PASSED                    [ 75%]
 tests/test_message.py::test_unknown_service PASSED                       [ 83%]
 tests/test_message.py::test_missing_information PASSED                   [ 91%]
-tests/test_message.py::test_gemini_failure_and_safe_fallback PASSED      [100%]
-======================== 12 passed in 0.59s ========================
+tests/test_message.py::test_grok_failure_and_safe_fallback PASSED        [100%]
+======================== 12 passed in 1.34s ========================
 ```
 
 ---
 
-## 10. Google Cloud Run Deployment
-
-The project includes a production-ready multi-stage `Dockerfile` configured to listen on `$PORT` and serve both frontend assets and API endpoints.
-
-### Step 1: Configure Google Cloud CLI
-```bash
-gcloud auth login
-gcloud config set project YOUR_GCP_PROJECT_ID
-```
-
-### Step 2: Build and Deploy to Cloud Run
-```bash
-# Build and deploy in a single command using Google Cloud Build
-gcloud run deploy digital-guide \
-  --source . \
-  --region asia-south1 \
-  --allow-unauthenticated \
-  --set-env-vars "PORT=8080,ENVIRONMENT=production,GEMINI_API_KEY=YOUR_GEMINI_API_KEY"
-```
-
-### Step 3: Verify Deployment
-Once deployed, Cloud Run will output a service URL (e.g., `https://digital-guide-xyz.a.run.app`).
-Verify health:
-```bash
-curl https://digital-guide-xyz.a.run.app/health
-# Returns: {"status":"ok","version":"1.0.0","scheme_loaded":true}
-```
-
----
-
-## 11. Complete 15-Step Demo Journey
-
-Judges can follow this exact sequence to experience the full value proposition:
+## 10. Complete 15-Step Demo Journey
 
 1. **Open the App**: Loads the clean, mobile-first home screen in **Telugu** (`తెలుగు`).
 2. **Language Switcher**: Tap the top language button (`తెలుగు ▾`) to view native script options (**తెలుగు**, **தமிழ்**, **हिन्दी**, **English**). Select **Telugu**.

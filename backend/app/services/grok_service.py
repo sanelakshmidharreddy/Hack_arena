@@ -1,14 +1,16 @@
 import json
 import logging
+import httpx
 from typing import Dict, Any, List, Optional
-from app.config import GEMINI_API_KEY
+
+from app.config import XAI_API_KEY, XAI_BASE_URL, GROK_MODEL
 from app.models.response_models import AssistantResponse, DocumentItem, StepItem, OptionItem
 from app.services.scheme_service import scheme_service
 
 logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """
-You are "Digital Guide" (డిజిటల్ గైడ్ / டிஜிட்டல் வழிகாட்டி / डिजिटल साथी) — an AI assistant designed specifically for a first-time rural woman user in India who has:
+You are "Digital Guide" (డిజిటల్ గైడ్ / டிஜிட்டல் வழிகாட்டி / डिजिटल साथी) — an empathetic AI assistant designed specifically for a first-time rural woman user in India who has:
 - No English knowledge
 - No technical background
 - No prior digital literacy
@@ -29,7 +31,7 @@ YOUR CORE PRINCIPLES:
 
 {verified_scheme_data}
 
-OUTPUT MUST BE VALID JSON MATCHING THIS EXACT SCHEMA:
+OUTPUT MUST BE VALID JSON ONLY MATCHING THIS EXACT SCHEMA (NO MARKDOWN CODE FENCES):
 {{
   "reply": "Conversational, very simple answer in the selected regional language",
   "intent": "Intent category name",
@@ -57,16 +59,21 @@ OUTPUT MUST BE VALID JSON MATCHING THIS EXACT SCHEMA:
 }}
 """
 
-class GeminiService:
+class GrokService:
     def __init__(self):
-        self._client = None
-        if GEMINI_API_KEY:
-            try:
-                from google import genai
-                self._client = genai.Client(api_key=GEMINI_API_KEY)
-                logger.info("Gemini Client successfully initialized with google-genai SDK.")
-            except Exception as e:
-                logger.warning(f"Could not initialize Gemini Client: {e}")
+        self._api_key = XAI_API_KEY
+        self._base_url = XAI_BASE_URL.rstrip("/")
+        self._model = GROK_MODEL
+
+        # Dynamic endpoint support: if a Groq key (gsk_...) is supplied, route to Groq; otherwise xAI
+        if self._api_key and self._api_key.startswith("gsk_"):
+            self._base_url = "https://api.groq.com/openai/v1"
+            self._model = "llama-3.3-70b-versatile"
+            logger.info("Detected Groq Cloud API credentials; routing to Groq endpoint.")
+        elif self._api_key:
+            logger.info(f"xAI Grok service initialized with model '{self._model}' at '{self._base_url}'.")
+        else:
+            logger.info("No live AI API key detected; using verified deterministic scheme engine.")
 
     def process_message(
         self,
@@ -75,17 +82,17 @@ class GeminiService:
         message: str,
         history: List[Dict[str, str]]
     ) -> AssistantResponse:
-        # If client is configured, call Gemini API
-        if self._client:
+        # If API key is present, attempt live Grok API call
+        if self._api_key:
             try:
-                return self._call_gemini(lang, message, history)
+                return self._call_grok_api(lang, message, history)
             except Exception as e:
-                logger.warning(f"Gemini API invocation failed: {e}. Gracefully using verified scheme engine.")
+                logger.warning(f"xAI Grok API invocation failed: {e}. Gracefully falling back to verified scheme engine.")
 
         # Fallback to local verified scheme engine
         return self._detect_scenario_and_respond(message, lang)
 
-    def _call_gemini(
+    def _call_grok_api(
         self,
         lang: str,
         message: str,
@@ -100,36 +107,50 @@ class GeminiService:
         language_name = lang_names.get(lang, "Telugu")
         scheme_context = scheme_service.get_verified_context_prompt(lang)
 
-        prompt = SYSTEM_PROMPT.format(
+        system_instruction = SYSTEM_PROMPT.format(
             language_name=language_name,
             verified_scheme_data=scheme_context
         )
 
-        conversation_contents = f"{prompt}\n\nRecent Conversation:\n"
+        messages = [{"role": "system", "content": system_instruction}]
         for turn in history[-4:]:
-            conversation_contents += f"{turn['role']}: {turn['content']}\n"
-        conversation_contents += f"user: {message}\nassistant (strictly JSON):"
+            messages.append({"role": turn.get("role", "user"), "content": turn.get("content", "")})
+        messages.append({"role": "user", "content": message})
 
-        response = self._client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=conversation_contents,
-        )
+        endpoint = f"{self._base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self._api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self._model,
+            "messages": messages,
+            "temperature": 0.2,
+            "response_format": {"type": "json_object"} if "api.x.ai" in self._base_url or "api.groq.com" in self._base_url else None
+        }
+        # Filter out None values
+        payload = {k: v for k, v in payload.items() if v is not None}
 
-        text_output = response.text.strip()
-        # Clean any markdown code fences if Gemini returns ```json
-        if text_output.startswith("```json"):
-            text_output = text_output[7:]
-        if text_output.startswith("```"):
-            text_output = text_output[3:]
-        if text_output.endswith("```"):
-            text_output = text_output[:-3]
-        text_output = text_output.strip()
+        with httpx.Client(timeout=15.0) as client:
+            resp = client.post(endpoint, headers=headers, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
 
-        data = json.loads(text_output)
-        return AssistantResponse(**data)
+        raw_content = data["choices"][0]["message"]["content"].strip()
+        # Clean markdown wrappers if present
+        if raw_content.startswith("```json"):
+            raw_content = raw_content[7:]
+        if raw_content.startswith("```"):
+            raw_content = raw_content[3:]
+        if raw_content.endswith("```"):
+            raw_content = raw_content[:-3]
+        raw_content = raw_content.strip()
+
+        parsed = json.loads(raw_content)
+        return AssistantResponse(**parsed)
 
     def explain_simply(self, text: str, lang: str) -> str:
-        if self._client:
+        if self._api_key:
             try:
                 lang_names = {"te": "Telugu", "ta": "Tamil", "hi": "Hindi", "en": "English"}
                 prompt = (
@@ -138,38 +159,46 @@ class GeminiService:
                     f"Do not add any new facts or change the meaning. Keep it under 2 sentences.\n\n"
                     f"Statement: {text}"
                 )
-                response = self._client.models.generate_content(
-                    model="gemini-2.5-flash",
-                    contents=prompt
-                )
-                return response.text.strip()
+                endpoint = f"{self._base_url}/chat/completions"
+                headers = {
+                    "Authorization": f"Bearer {self._api_key}",
+                    "Content-Type": "application/json"
+                }
+                payload = {
+                    "model": self._model,
+                    "messages": [
+                        {"role": "system", "content": "You are a simple language clarifier for rural women."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    "temperature": 0.2,
+                }
+                with httpx.Client(timeout=10.0) as client:
+                    resp = client.post(endpoint, headers=headers, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        return data["choices"][0]["message"]["content"].strip()
             except Exception as e:
-                logger.warning(f"Gemini explain simply failed: {e}")
+                logger.warning(f"Grok explain simply failed: {e}")
 
-        # Deterministic simplification
+        # Deterministic simplification fallback
         demo_resp = scheme_service.get_deterministic_path("explain_simply", lang)
         return demo_resp.explanation
 
     def _detect_scenario_and_respond(self, message: str, lang: str) -> AssistantResponse:
         lower = message.lower().strip()
 
-        # Check for "explain simply" or "don't understand"
         if any(w in lower for w in ["understand", "simple", "అర్థం కాలేదు", "సులభంగా", "புரியவில்லை", "எளிமையாக", "समझ नहीं", "सरल"]):
             return scheme_service.get_deterministic_path("explain_simply", lang)
 
-        # Check for eligibility / age answers
         if any(w in lower for w in ["yes", "7", "8", "5", "6", "9", "10", "అవును", "ஆம்", "हाँ", "eligible", "అర్హత", "years", "ఏళ్లు"]):
             return scheme_service.get_deterministic_path("eligible_yes", lang)
 
-        # Check for documents
         if any(w in lower for w in ["document", "paper", "certificate", "కాగితాలు", "సర్టిఫికెట్", "ఆధార్", "ஆவணங்கள்", "சான்றிதழ்", "कागजात", "दस्तावेज"]):
             return scheme_service.get_deterministic_path("documents", lang)
 
-        # Check for how to proceed / where to go
         if any(w in lower for w in ["where", "go", "apply", "visit", "office", "పోస్టాఫీస్", "ఎక్కడికి", "వెళ్లాలి", "எங்கு", "செல்ல", "कहाँ", "जाना"]):
             return scheme_service.get_deterministic_path("how_to_proceed", lang)
 
-        # Default to need help
         return scheme_service.get_deterministic_path("need_help", lang)
 
-gemini_service = GeminiService()
+grok_service = GrokService()

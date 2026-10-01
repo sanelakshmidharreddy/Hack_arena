@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
 from app.main import app
-from app.services.gemini_service import gemini_service
+from app.services.grok_service import grok_service
 
 client = TestClient(app)
 
@@ -100,9 +100,9 @@ def test_missing_information():
     data = response.json()
     assert "reply" in data
 
-def test_gemini_failure_and_safe_fallback():
-    """Simulates Gemini API throwing an unexpected Exception, verifying system gracefully recovers"""
-    with patch.object(gemini_service, "_call_gemini", side_effect=Exception("API Quota Exceeded")):
+def test_grok_failure_and_safe_fallback():
+    """Simulates Grok API throwing an unexpected Exception, verifying system gracefully recovers"""
+    with patch.object(grok_service, "_call_grok_api", side_effect=Exception("API Quota Exceeded")):
         payload = {
             "session_id": "test-session-008",
             "language": "te",
