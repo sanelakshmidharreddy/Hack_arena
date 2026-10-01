@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  digital-guide:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - ENVIRONMENT=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    restart: unless-stopped

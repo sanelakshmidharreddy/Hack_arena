@@ -1,0 +1,208 @@
+{
+  "schemes": [
+    {
+      "id": "sukanya_samriddhi_yojana",
+      "name": "Sukanya Samriddhi Yojana (SSY)",
+      "name_regional": {
+        "te": "సుకున్య సమృద్ధి యోజన (బాలికా సమృద్ధి పొదుపు ఖాతా)",
+        "ta": "சுகன்யா சம்ரித்தி யோஜனா (செல்வமகள் சேமிப்பு திட்டம்)",
+        "hi": "सुकन्या समृद्धि योजना (बालिका समृद्धि खाता)",
+        "en": "Sukanya Samriddhi Yojana (SSY)"
+      },
+      "purpose": "Financial security, higher education and welfare fund for girl children in India.",
+      "purpose_regional": {
+        "te": "ఆడపిల్లల ఉన్నత చదువు మరియు భవిష్యత్ భరోసా కోసం కేంద్ర ప్రభుత్వ ప్రత్యేక పొదుపు పథకం.",
+        "ta": "பெண் குழந்தைகளின் உயர் கல்வி மற்றும் எதிர்கால பாதுகாப்பிற்கான மத்திய அரசு சேமிப்பு திட்டம்.",
+        "hi": "बालिकाओं की उच्च शिक्षा और सुरक्षित भविष्य के लिए भारत सरकार की विशेष बचत योजना।",
+        "en": "Official government savings scheme for girl child higher education and welfare."
+      },
+      "target_users": [
+        "Parents or legal guardians of a girl child aged 10 years or younger",
+        "Rural and semi-urban families seeking guaranteed government returns without market risk"
+      ],
+      "eligibility": [
+        "The girl child must be an Indian citizen.",
+        "The girl child must be 10 years of age or younger on the date of account opening.",
+        "Only one account is permitted per girl child.",
+        "A family can open accounts for a maximum of 2 girl children (with exception for twins/triplets).",
+        "The account must be opened and operated by a parent or legal guardian until the girl turns 18."
+      ],
+      "eligibility_regional": {
+        "te": [
+          "పాప వయస్సు 10 సంవత్సరాలు లేదా అంతకంటే తక్కువ ఉండాలి.",
+          "భారతీయ పౌరురాలై ఉండాలి.",
+          "ఒక కుటుంబంలో గరిష్టంగా ఇద్దరు ఆడపిల్లలకు మాత్రమే ఖాతా తెరవవచ్చు.",
+          "తల్లి లేదా తండ్రి లేదా సంరక్షకుడు ఖాతా తెరవాలి."
+        ],
+        "ta": [
+          "பெண் குழந்தையின் வயது 10 அல்லது அதற்கும் குறைவாக இருக்க வேண்டும்.",
+          "இந்திய குடிமகளாக இருக்க வேண்டும்.",
+          "ஒரு குடும்பத்தில் அதிகபட்சம் 2 பெண் குழந்தைகளுக்கு கணக்கு தொடங்கலாம்.",
+          "பெற்றோர் அல்லது பாதுகாவலர் கணக்கை தொடங்கலாம்."
+        ],
+        "hi": [
+          "बेटी की आयु 10 वर्ष या उससे कम होनी चाहिए।",
+          "भारत की नागरिक होनी चाहिए।",
+          "एक परिवार में अधिकतम 2 बालिकाओं के लिए खाता खोला जा सकता है।",
+          "माता-पिता या कानूनी अभिभावक द्वारा खाता खोला जा सकता है।"
+        ]
+      },
+      "benefits": [
+        "Government guaranteed interest rate of 8.2% per annum.",
+        "Completely tax-free under Income Tax Section 80C.",
+        "Account can be opened with just ₹250 initial deposit.",
+        "50% partial withdrawal allowed for higher education once the girl turns 18 or clears 10th standard.",
+        "Account matures 21 years from opening date or upon girl's marriage after age 18."
+      ],
+      "documents": [
+        {
+          "name": "Girl Child Birth Certificate",
+          "name_regional": {
+            "te": "పాప జనన ధృవీకరణ పత్రం (Birth Certificate)",
+            "ta": "குழந்தையின் பிறப்புச் சான்றிதழ்",
+            "hi": "बेटी का जन्म प्रमाण पत्र (Birth Certificate)",
+            "en": "Girl Child Birth Certificate"
+          },
+          "purpose": "Verifies the girl child's age (must be <= 10 years old).",
+          "purpose_regional": {
+            "te": "వయస్సు 10 సంవత్సరాల లోపే ఉందని నిర్ధారించడానికి.",
+            "ta": "வயது 10க்குள் இருப்பதை உறுதி செய்ய.",
+            "hi": "आयु 10 वर्ष से कम होने का प्रमाण।",
+            "en": "To verify age is 10 years or younger."
+          }
+        },
+        {
+          "name": "Parent/Guardian Aadhaar Card",
+          "name_regional": {
+            "te": "తల్లి లేదా తండ్రి ఆధార్ కార్డు (Aadhaar)",
+            "ta": "பெற்றோர் ஆதார் அட்டை",
+            "hi": "माता/पिता का आधार कार्ड",
+            "en": "Parent/Guardian Aadhaar Card"
+          },
+          "purpose": "Proof of identity and residential address for guardian.",
+          "purpose_regional": {
+            "te": "సంరక్షకుని గుర్తింపు మరియు నివాస చిరునామా ధృవీకరణ కోసం.",
+            "ta": "பெற்றோரின் அடையாளம் மற்றும் முகவரி சான்று.",
+            "hi": "अभिभावक की पहचान एवं निवास प्रमाण हेतु।",
+            "en": "Identity and address verification of guardian."
+          }
+        },
+        {
+          "name": "2 Passport Size Photographs",
+          "name_regional": {
+            "te": "2 పాస్‌పోర్ట్ సైజ్ ఫోటోలు",
+            "ta": "2 பாஸ்போர்ட் அளவிலான புகைப்படங்கள்",
+            "hi": "2 पासपोर्ट साइज फोटो",
+            "en": "2 Passport Size Photographs"
+          },
+          "purpose": "Affixed on the bank/postal passbook.",
+          "purpose_regional": {
+            "te": "ఖాతా పాస్‌బుక్ పై అంటించడానికి.",
+            "ta": "வங்கி பாஸ்புக்கில் ஒட்ட.",
+            "hi": "पासबुक पर लगाने हेतु।",
+            "en": "For account passbook records."
+          }
+        },
+        {
+          "name": "₹250 Initial Cash Deposit",
+          "name_regional": {
+            "te": "₹250 నగదు డిపాజిట్",
+            "ta": "₹250 ஆரம்ப வைப்பு பணம்",
+            "hi": "₹250 नकद जमा राशि",
+            "en": "₹250 Initial Cash Deposit"
+          },
+          "purpose": "Minimum statutory amount needed to activate account.",
+          "purpose_regional": {
+            "te": "ఖాతా ప్రారంభించడానికి కనీస మొత్తం.",
+            "ta": "கணக்கு தொடங்க குறைந்தபட்ச தொகை.",
+            "hi": "खाता सक्रिय करने हेतु न्यूनतम राशि।",
+            "en": "Minimum statutory opening amount."
+          }
+        }
+      ],
+      "steps": [
+        {
+          "step_number": 1,
+          "instruction": "Keep Birth Certificate and Aadhaar photocopies ready.",
+          "instruction_regional": {
+            "te": "పాప బర్త్ సర్టిఫికెట్ మరియు మీ ఆధార్ కార్డు జిరాక్స్ సిద్ధం చేసుకోండి.",
+            "ta": "குழந்தையின் பிறப்புச் சான்றிதழ் மற்றும் உங்கள் ஆதார் அட்டை நகல் எடுக்கவும்.",
+            "hi": "बेटी का जन्म प्रमाण पत्र और अपना आधार कार्ड की फोटोकॉपी तैयार रखें।",
+            "en": "Keep Birth Certificate and Aadhaar photocopies ready."
+          },
+          "detail": "Keep the original documents in a bag along with one clean photocopy of each document.",
+          "detail_regional": {
+            "te": "అసలు కాగితాలు మరియు ఒక జిరాక్స్ కాపీని ఒక కవర్‌లో భద్రంగా పెట్టుకోండి.",
+            "ta": "அசல் ஆவணங்களுடன் ஒரு நகலை தயாராக வைக்கவும்.",
+            "hi": "मूल दस्तावेज और एक-एक साफ फोटोकॉपी अपने साथ रखें।",
+            "en": "Keep original documents along with one clean photocopy of each."
+          },
+          "action_text": "కాగితాలు సిద్ధం చేసుకున్నాను"
+        },
+        {
+          "step_number": 2,
+          "instruction": "Keep ₹250 cash ready in hand.",
+          "instruction_regional": {
+            "te": "₹250 నగదు చేతిలో ఉంచుకోండి.",
+            "ta": "₹250 பணத்தை தயாராக வைக்கவும்.",
+            "hi": "₹250 नकद राशि अपने पास रखें।",
+            "en": "Keep ₹250 cash ready in hand."
+          },
+          "detail": "This ₹250 goes straight into your daughter's account. There are no form charges or hidden fees.",
+          "detail_regional": {
+            "te": "ఈ 250 రూపాయలు నేరుగా మీ పాప ఖాతాలోనే జమ అవుతాయి. ఫారం కోసం ఎటువంటి ఫీజు చెల్లించాల్సిన పనిలేదు.",
+            "ta": "இந்த ₹250 உங்கள் மகள் கணக்கிலேயே சேமிப்பாகும். படிவத்திற்கு கட்டணம் ஏதுமில்லை.",
+            "hi": "यह ₹250 सीधे आपकी बेटी के खाते में जमा होंगे। फॉर्म का कोई शुल्क नहीं होता।",
+            "en": "This ₹250 goes directly into your daughter's account balance."
+          },
+          "action_text": "నగదు సిద్ధంగా ఉంది"
+        },
+        {
+          "step_number": 3,
+          "instruction": "Visit your local Post Office or Gram Dak Sevak.",
+          "instruction_regional": {
+            "te": "మీ ఊరి పోస్టాఫీస్ (తపాలా కార్యాలయం) లేదా గ్రామ డాక్ సేవక్ వద్దకు వెళ్లండి.",
+            "ta": "உங்கள் ஊர் தபால் அலுவலகத்திற்கு (Post Office) செல்லுங்கள்.",
+            "hi": "अपने नजदीकी डाकघर (Post Office) या ग्रामीण डाक सेवक के पास जाएं।",
+            "en": "Visit your local Post Office or Gram Dak Sevak branch."
+          },
+          "detail": "Ask the postal counter officer: 'I want to open Sukanya Samriddhi account for my daughter'. The officer will hand you the form and assist you in writing.",
+          "detail_regional": {
+            "te": "పోస్టాఫీస్ కౌంటర్‌లో 'నా పాపకు సుకున్య సమృద్ధి ఖాతా తెరవాలి' అని చెప్పండి. అక్కడి సిబ్బంది ఉచితంగా ఫారం ఇచ్చి రాసి సహాయం చేస్తారు.",
+            "ta": "தபால் அலுவலரிடம் 'சுகன்யா சம்ரித்தி கணக்கு தொடங்க வேண்டும்' என்று கூறுங்கள். அவர் படிவம் நிரப்ப உதவுவார்.",
+            "hi": "डाकघर काउंटर पर कहें: 'मुझे बेटी का सुकन्या समृद्धि खाता खोलना है'। वे फॉर्म देंगे और भरने में मदद करेंगे।",
+            "en": "Ask for the Sukanya Samriddhi form. Staff will assist in filling."
+          },
+          "action_text": "పోస్టాఫీస్ కి చేరుకున్నాను"
+        },
+        {
+          "step_number": 4,
+          "instruction": "Submit documents and collect your official printed passbook.",
+          "instruction_regional": {
+            "te": "కాగితాలు, నగదు ఇచ్చి ముద్రించిన పాస్‌బుక్ తీసుకోండి.",
+            "ta": "ஆவணங்களை சமர்ப்பித்து அதிகாரப்பூர்வ பாஸ்புக் பெறவும்.",
+            "hi": "कागजात और पैसे जमा कर अपनी मुद्रित पासबुक प्राप्त करें।",
+            "en": "Submit documents and collect your official printed passbook."
+          },
+          "detail": "The postal officer will verify documents, take ₹250, and stamp the printed Sukanya Samriddhi passbook with your daughter's name. Keep it safe at home.",
+          "detail_regional": {
+            "te": "పోస్టల్ అధికారి మీ కాగితాలు చూసి, 250 రూపాయలు తీసుకుని మీ పాప పేరుతో పాస్‌బుక్ ఇస్తారు. దానిని ఇంట్లో భద్రంగా దాచుకోండి.",
+            "ta": "அலுவலர் சரிபார்த்து ₹250 பெற்று உங்கள் மகள் பெயரில் பாஸ்புக் தருவார்.",
+            "hi": "अधिकारी दस्तावेज देखकर ₹250 जमा करेंगे और बेटी के नाम की पासबुक सौंपेंगे। इसे घर में सुरक्षित रखें।",
+            "en": "Collect the passbook stamped with your daughter's name and keep it safe."
+          },
+          "action_text": "పాస్‌బుక్ తీసుకున్నాను (పూర్తయింది)"
+        }
+      ],
+      "next_action": "Visit your nearest Post Office with your Aadhaar Card, daughter's Birth Certificate, and ₹250 cash.",
+      "next_action_regional": {
+        "te": "రేపు ఉదయం 10 గంటలకు మీ సమీప పోస్టాఫీసుకు ఆధార్ కార్డు, పాప బర్త్ సర్టిఫికెట్ మరియు ₹250 తో వెళ్లండి.",
+        "ta": "நாளை காலை உங்கள் ஊர் தபால் அலுவலகத்திற்கு ஆதார் அட்டை, பிறப்பு சான்றிதழ் மற்றும் ₹250 பணத்துடன் செல்லவும்.",
+        "hi": "कल सुबह अपने नजदीकी डाकघर में आधार कार्ड, जन्म प्रमाण पत्र और ₹250 लेकर जाएं।",
+        "en": "Visit your nearest Post Office tomorrow with Aadhaar, Birth Certificate, and ₹250 cash."
+      },
+      "official_url": "https://www.indiapost.gov.in/Financial/Pages/Content/Sukanya-Samriddhi-Account.aspx",
+      "help_information": "India Post Gram Dak Sevak and Post Offices assist rural citizens directly without any digital intermediaries or service charges."
+    }
+  ]
+}
