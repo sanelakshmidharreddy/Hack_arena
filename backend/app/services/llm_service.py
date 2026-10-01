@@ -301,7 +301,14 @@ class LLMService:
         lower = message.lower().strip()
 
         # Ineligibility check FIRST
-        if any(w in lower for w in ["older", "not eligible", "దాటింది", "పెద్ద", "లేదు", "இல்லை", "அதிகம்", "नहीं", "अधिक"]):
+        ineligible_signals = [
+            "older", "not eligible", "not_eligible", "10 ఏళ్లు దాటింది", "కాదు",
+            "పెద్ద", "లేదు", "இல்லை", "10 வயதுக்கு மேல்", "नहीं", "10 वर्ष से अधिक",
+            "11", "12", "13", "14", "15", "16", "17", "18"
+        ]
+        if any(w in lower for w in ineligible_signals) and not any(pos in lower for pos in ["అవును", "ஆம்", "हाँ", "yes"]):
+            return scheme_service.get_deterministic_path("eligible_no", lang)
+        if lower.startswith("no,") or lower.startswith("no ") or lower == "no":
             return scheme_service.get_deterministic_path("eligible_no", lang)
 
         if any(w in lower for w in ["understand", "simple", "అర్థం కాలేదు", "సులభంగా", "புரியவில்லை", "எளிமையாக", "समझ नहीं", "सरल"]):
