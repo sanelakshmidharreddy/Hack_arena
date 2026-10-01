@@ -105,11 +105,11 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
             return "no"
         if age is None:
             return "unknown"
-        if 0 <= age <= 10:
+        if age <= 10:
             return "yes"
         return "no"
 
-    def get_deterministic_path(self, scenario: str, lang: str) -> AssistantResponse:
+    def get_deterministic_path(self, scenario: str, lang: str, topic: Optional[str] = None) -> AssistantResponse:
         """
         Deterministic verified scheme responses.
         Guarantees 100% test passing, prompt-injection defense, and offline demo resilience.
@@ -225,13 +225,19 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
                 "hi": "आपको केवल 2 मुख्य कागजात (जन्म प्रमाण पत्र, आधार कार्ड), 2 फोटो और ₹250 नकद लेकर जाना होगा।",
                 "en": "You only need 2 simple documents (Birth Certificate, Aadhaar), 2 photos, and ₹250 cash."
             }
+            explanations = {
+                "te": "కేవలం పాప బర్త్ సర్టిఫికెట్ మరియు తల్లిదండ్రుల ఆధార్ కార్డు, 2 ఫోటోలు ఉంటే చాలు. ఏ ఇతర సర్టిఫికెట్లు అవసరం లేదు.",
+                "ta": "குழந்தையின் பிறப்புச் சான்றிதழ், பெற்றோரின் ஆதார் அட்டை மற்றும் 2 புகைப்படங்கள் மட்டுமே தேவை.",
+                "hi": "केवल 2 मुख्य दस्तावेज चाहिए: बच्ची का जन्म प्रमाण पत्र और माता-पिता का आधार कार्ड, साथ में 2 फोटो।",
+                "en": "You only need the child's Birth Certificate and parent's Aadhaar card with 2 photos. No other complicated documents are required."
+            }
             return AssistantResponse(
                 reply=replies.get(lang, replies["en"]),
                 intent="documents_inquiry",
                 needs_clarification=False,
                 question=None,
                 eligible="unknown",
-                explanation="కేవలం పాప బర్త్ సర్టిఫికెట్ మరియు తల్లిదండ్రుల ఆధార్ కార్డు ఉంటే చాలు. ఏ ఇతర సర్టిఫికెట్లు అవసరం లేదు.",
+                explanation=explanations.get(lang, explanations["en"]),
                 documents=docs,
                 steps=[],
                 next_action=next_act,
@@ -241,10 +247,16 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
 
         elif scenario == "how_to_proceed":
             replies = {
-                "te": "మీ గ్రామంలోని పోస్టాఫీసు (తపాలా కార్యాలయం) లేదా సమీప స్టేట్ బ్యాంక్ (SBI) కు వెళ్లండి.",
-                "ta": "உங்கள் கிராமத்து தபால் அலுவலகம் (Post Office) அல்லது அருகிலுள்ள அரசு வங்கிக்கு செல்லவும்.",
-                "hi": "अपने गांव या पास के डाकघर (Post Office) या स्टेट बैंक (SBI) जाएं।",
-                "en": "Visit your local Post Office branch or nearest public bank (like SBI)."
+                "te": "మీ గ్రామంలోని పోస్టాఫీసు (తపాలా కార్యాలయం) లేదా సమీప స్టేట్ బ్యాంక్ (SBI) కు వెళ్లి దరఖాస్తు ఫారం నింపండి.",
+                "ta": "உங்கள் கிராமத்து தபால் அலுவலகம் அல்லது அருகிலுள்ள அரசு வங்கிக்கு (SBI) சென்று படிவத்தை பூர்த்தி செய்யவும்.",
+                "hi": "अपने गांव या पास के डाकघर (Post Office) या स्टेट बैंक (SBI) जाकर खाता खोलने का फॉर्म भरें।",
+                "en": "Visit your local Post Office branch or nearest public bank (like SBI) to fill out the account opening form."
+            }
+            explanations = {
+                "te": "ఆన్‌లైన్ వెబ్‌సైట్లలో వెతకాల్సిన అవసరం లేదు. పోస్టాఫీసులో నేరుగా వెళ్లి ఫారం తీసుకుని కాగితాలతో సమర్పించవచ్చు.",
+                "ta": "ஆன்லைன் இணையதளங்களில் தேட வேண்டியதில்லை. தபால் நிலையத்திற்கு நேரடியாக சென்று படிவம் பெற்று சமர்ப்பிக்கலாம்.",
+                "hi": "ऑनलाइन वेबसाइट पर जाने की जरूरत नहीं है। डाकघर के काउंटर पर जाकर फॉर्म लें और आवश्यक कागजात के साथ जमा करें।",
+                "en": "No online application is required. Visit the Post Office counter directly, collect the SSY form, and submit with documents."
             }
             return AssistantResponse(
                 reply=replies.get(lang, replies["en"]),
@@ -252,8 +264,8 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
                 needs_clarification=False,
                 question=None,
                 eligible="unknown",
-                explanation="ఆన్‌లైన్ వెబ్‌సైట్లలో వెతకాల్సిన అవసరం లేదు. పోస్టాఫీసులో నేరుగా వెళ్లి ఫారం తీసుకోవచ్చు.",
-                documents=[],
+                explanation=explanations.get(lang, explanations["en"]),
+                documents=docs,
                 steps=steps,
                 next_action=next_act,
                 source="verified_demo_data",
@@ -261,25 +273,80 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
             )
 
         elif scenario == "explain_simply":
-            replies = {
-                "te": "సులభంగా చెప్పాలంటే: ఇది మీ పాప కోసం ప్రభుత్వం ఇచ్చే ప్రత్యేక పోస్టాఫీస్ పొదుపు పుస్తకం. ఇందులో ప్రభుత్వం 8.2% మంచి వడ్డీ ఇస్తుంది.",
-                "ta": "எளிய வார்த்தைகளில்: இது உங்கள் மகளுக்காக தபால் அலுவலகத்தில் திறக்கப்படும் பாதுகாப்பான சேமிப்பு கணக்கு (8.2% வட்டி).",
-                "hi": "सीधे शब्दों में: यह आपकी बेटी के लिए डाकघर की सरकारी बचत योजना है, जिसमें सरकार 8.2% का अच्छा ब्याज देती है।",
-                "en": "In very simple words: This is a government savings account at the Post Office for your daughter with 8.2% safe interest."
-            }
-            explanations = {
-                "te": "మీరు కేవలం ₹250 కట్టి పోస్టాఫీసులో ఖాతా తెరవవచ్చు. పాప పెద్దయ్యాక చదువుకు ఈ డబ్బు ఎంతో ఉపయోగపడుతుంది.",
-                "ta": "நீங்கள் வெறும் ₹250 செலுத்தி தபால் அலுவலகத்தில் கணக்கு தொடங்கலாம். உங்கள் மகள் வளர்ந்ததும் படிப்புக்கு இது உதவும்.",
-                "hi": "आप नजदीकी डाकघर में मात्र ₹250 से यह खाता खोल सकते हैं। बेटी के बड़े होने पर यह पैसा उसकी पढ़ाई में बहुत काम आएगा।",
-                "en": "In simple words: You can start this account at your local Post Office with just ₹250. The government gives 8.2% safe interest to help with your daughter's future education."
-            }
+            # Topic-aware simple explanation
+            if topic == "documents":
+                replies = {
+                    "te": "సులభంగా చెప్పాలంటే: పాప బర్త్ సర్టిఫికెట్, మీ ఆధార్ కార్డు, 2 ఫోటోలు మరియు ₹250 నగదు తీసుకుని వెళ్లండి.",
+                    "ta": "எளிய வார்த்தைகளில்: குழந்தையின் பிறப்புச் சான்றிதழ், உங்கள் ஆதார், 2 புகைப்படங்கள் மற்றும் ₹250 மட்டும் போதும்.",
+                    "hi": "सीधे शब्दों में: केवल बेटी का जन्म प्रमाण पत्र, अपना आधार कार्ड, 2 फोटो और ₹250 नकद लेकर जाएं।",
+                    "en": "In simple words: Just bring your daughter's Birth Certificate, your Aadhaar card, 2 photos, and ₹250 cash."
+                }
+                explanation_str = {
+                    "te": "ఎలాంటి ఇతర సర్టిఫికెట్లు అవసరం లేదు. ఈ రెండు కాగితాలు ఉంటే సులభంగా ఖాతా తెరవవచ్చు.",
+                    "ta": "வேறு எந்த சான்றிதழும் தேவையில்லை. இந்த இரண்டும் இருந்தால் போதும்.",
+                    "hi": "किसी अन्य दस्तावेज की आवश्यकता नहीं है। इन दोनों से आसानी से खाता खुल जाएगा।",
+                    "en": "No extra paperwork is required. These simple documents are all you need to start."
+                }.get(lang, "No extra paperwork is required.")
+            elif topic == "how_to_proceed":
+                replies = {
+                    "te": "సులభంగా చెప్పాలంటే: పోస్టాఫీస్ లేదా బ్యాంకుకు వెళ్లి, ఫారం నింపి, ₹250 కట్టి పాస్‌బుక్ తీసుకోండి.",
+                    "ta": "எளிய வார்த்தைகளில்: தபால் அலுவலகம் சென்று, படிவத்தை பூர்த்தி செய்து ₹250 செலுத்தி பாஸ்புக் பெற்றுக்கொள்ளுங்கள்.",
+                    "hi": "सीधे शब्दों में: डाकघर या बैंक जाएं, फॉर्म भरें और ₹250 जमा करके अपनी पासबुक प्राप्त करें।",
+                    "en": "In simple words: Just walk into your local Post Office or Bank, fill the form, and deposit ₹250 to get your passbook."
+                }
+                explanation_str = {
+                    "te": "ఏ ఆన్‌లైన్ పని లేదు. నేరుగా వెళ్లి ఫారం సమర్పిస్తే వెంటనే పాస్‌బుక్ ఇస్తారు.",
+                    "ta": "நேரடியாக தபால் அலுவலகம் சென்று சமர்ப்பிக்கலாம்.",
+                    "hi": "सीधे डाकघर जाकर फॉर्म जमा करें, आपको तुरंत पासबुक मिल जाएगी।",
+                    "en": "No online work required. Submit directly at the counter and receive your passbook."
+                }.get(lang, "No online work required.")
+            elif topic in ["deposit_limits", "amount_fees"]:
+                replies = {
+                    "te": "సులభంగా చెప్పాలంటే: ఖాతా తెరవడానికి కేవలం ₹250 కడితే చాలు, ఎలాంటి దరఖాస్తు రుసుము ఉండదు.",
+                    "ta": "எளிய வார்த்தைகளில்: கணக்கு தொடங்க ₹250 போதும், எந்த கட்டணமும் இல்லை.",
+                    "hi": "सीधे शब्दों में: खाता शुरू करने के लिए सिर्फ ₹250 चाहिए, कोई फीस नहीं है।",
+                    "en": "In simple words: You only need ₹250 to open the account, and opening it is completely free with no fees."
+                }
+                explanation_str = {
+                    "te": "సంవత్సరంలో మీ శక్తి కొద్దీ ₹1.5 లక్షల వరకు దాచుకోవచ్చు.",
+                    "ta": "ஆண்டுக்கு உங்கள் வசதிக்கேற்ப ₹1.5 லட்சம் வரை சேமிக்கலாம்.",
+                    "hi": "साल में आप अपनी सुविधानुसार ₹1.5 लाख तक जमा कर सकते हैं।",
+                    "en": "You can save up to ₹1.5 Lakh per year according to your convenience."
+                }.get(lang, "You can save up to ₹1.5 Lakh per year.")
+            elif topic == "interest_rate":
+                replies = {
+                    "te": "సులభంగా చెప్పాలంటే: ప్రభుత్వం ప్రతి సంవత్సరం 8.2% అధిక వడ్డీని జోడించి మీ పాప డబ్బును పెంచుతుంది.",
+                    "ta": "எளிய வார்த்தைகளில்: உங்கள் மகளின் சேமிப்பு வளர அரசு ஆண்டுக்கு 8.2% அதிக வட்டியை வழங்குகிறது.",
+                    "hi": "सीधे शब्दों में: सरकार हर साल 8.2% का सुरक्षित ब्याज जोड़ती है ताकि आपकी बेटी का पैसा तेजी से बढ़े।",
+                    "en": "In simple words: The government pays 8.2% high safe interest every year to help your daughter's money grow."
+                }
+                explanation_str = {
+                    "te": "ఇతర సాధారణ పొదుపు ఖాతాల కంటే ఇది అత్యధిక సురక్షిత లాభాన్ని ఇస్తుంది.",
+                    "ta": "மற்ற சேமிப்பு திட்டங்களை விட இதில் அதிக அரசு வட்டி கிடைக்கிறது.",
+                    "hi": "यह अन्य सामान्य बचत खातों की तुलना में सबसे अधिक और सुरक्षित लाभ देता है।",
+                    "en": "This gives the highest and safest return compared to normal savings accounts."
+                }.get(lang, "Highest government-backed return.")
+            else:
+                replies = {
+                    "te": "సులభంగా చెప్పాలంటే: ఇది మీ పాప కోసం ప్రభుత్వం ఇచ్చే ప్రత్యేక పోస్టాఫీస్ పొదుపు పుస్తకం. ఇందులో ప్రభుత్వం 8.2% మంచి వడ్డీ ఇస్తుంది.",
+                    "ta": "எளிய வார்த்தைகளில்: இது உங்கள் மகளுக்காக தபால் அலுவலகத்தில் திறக்கப்படும் பாதுகாப்பான சேமிப்பு கணக்கு (8.2% வட்டி).",
+                    "hi": "सीधे शब्दों में: यह आपकी बेटी के लिए डाकघर की सरकारी बचत योजना है, जिसमें सरकार 8.2% का अच्छा ब्याज देती है।",
+                    "en": "In very simple words: This is a government savings account at the Post Office for your daughter with 8.2% safe interest."
+                }
+                explanation_str = {
+                    "te": "మీరు కేవలం ₹250 కట్టి పోస్టాఫీసులో ఖాతా తెరవవచ్చు. పాప పెద్దయ్యాక చదువుకు ఈ డబ్బు ఎంతో ఉపయోగపడుతుంది.",
+                    "ta": "நீங்கள் வெறும் ₹250 செலுத்தி தபால் அலுவலகத்தில் கணக்கு தொடங்கலாம். உங்கள் மகள் வளர்ந்ததும் படிப்புக்கு இது உதவும்.",
+                    "hi": "आप नजदीकी डाकघर में मात्र ₹250 से यह खाता खोल सकते हैं। बेटी के बड़े होने पर यह पैसा उसकी पढ़ाई में बहुत काम आएगा।",
+                    "en": "In simple words: You can start this account at your local Post Office with just ₹250. The government gives 8.2% safe interest to help with your daughter's future education."
+                }.get(lang, "In simple words: You can start this account with just ₹250.")
+
             return AssistantResponse(
                 reply=replies.get(lang, replies["en"]),
                 intent="simplify_explanation",
                 needs_clarification=False,
                 question=None,
                 eligible="unknown",
-                explanation=explanations.get(lang, explanations["en"]),
+                explanation=explanation_str,
                 documents=docs[:2],
                 steps=steps,
                 next_action=next_act,
@@ -310,10 +377,16 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
 
         elif scenario == "deposit_limits":
             replies = {
-                "te": "మీరు కనీసం ₹250 తో ఖాతా తెరవవచ్చు. సంవత్సరానికి గరిష్టంగా ₹1,50,000 వరకు జమ చేయవచ్చు.",
-                "ta": "நீங்கள் குறைந்தபட்சம் ₹250 செலுத்தி கணக்கு தொடங்கலாம். ஆண்டுக்கு அதிகபட்சம் ₹1,50,000 வரை சேமிக்கலாம்.",
-                "hi": "आप न्यूनतम ₹250 से खाता खोल सकते हैं। एक वित्तीय वर्ष में अधिकतम ₹1,50,000 तक जमा किया जा सकता है।",
-                "en": "You can open an account with a minimum deposit of ₹250. The maximum deposit limit is ₹1,50,000 per financial year."
+                "te": "మీరు కనీసం ₹250 తో ఖాతా తెరవవచ్చు. సంవత్సరానికి గరిష్టంగా ₹1,50,000 వరకు జమ చేయవచ్చు. దరఖాస్తుకు ఎలాంటి రుసుము లేదు.",
+                "ta": "நீங்கள் குறைந்தபட்சம் ₹250 செலுத்தி கணக்கு தொடங்கலாம். ஆண்டுக்கு அதிகபட்சம் ₹1,50,000 வரை சேமிக்கலாம். விண்ணப்ப கட்டணம் ஏதுமில்லை.",
+                "hi": "आप न्यूनतम ₹250 से खाता खोल सकते हैं। एक वर्ष में अधिकतम ₹1,50,000 जमा कर सकते हैं। आवेदन के लिए कोई फीस नहीं है।",
+                "en": "You can open an account with a minimum deposit of ₹250. The maximum deposit limit is ₹1,50,000 per financial year, and there is no application fee."
+            }
+            explanations = {
+                "te": "ఖాతా తెరవడానికి కనీసం ₹250 నగదు ఉంటే చాలు. దరఖాస్తు ఉచితం, ఏ ఇతర చార్జీలు ఉండవు.",
+                "ta": "கணக்கு தொடங்க குறைந்தபட்சம் ₹250 ரொக்கம் போதுமானது. விண்ணப்பம் முற்றிலும் இலவசம்.",
+                "hi": "खाता खोलने के लिए केवल ₹250 नकद जमा करना होता है। फॉर्म भरने का कोई शुल्क नहीं है।",
+                "en": "Opening the account only requires an initial deposit of ₹250. There are zero application or processing fees."
             }
             return AssistantResponse(
                 reply=replies.get(lang, replies["en"]),
@@ -321,7 +394,34 @@ ALTERNATIVES IF NOT ELIGIBLE (Age > 10):
                 needs_clarification=False,
                 question=None,
                 eligible="unknown",
-                explanation="కనీసం ₹250 ప్రతి సంవత్సరం జమ చేయాలి. ఒక సంవత్సరంలో గరిష్ట పరిమితి ₹1.5 లక్షలు.",
+                explanation=explanations.get(lang, explanations["en"]),
+                documents=[],
+                steps=[],
+                next_action=next_act,
+                source="verified_demo_data",
+                confidence="verified"
+            )
+
+        elif scenario == "unrelated":
+            replies = {
+                "te": "నాకు దీని గురించి సమాచారం లేదు. నాకు కేవలం సుకున్య సమృద్ధి యోజన గురించి మాత్రమే ధృవీకరించబడిన సమాచారం ఉంది. సహాయం కోసం ఇండియా పోస్ట్ 1800-266-6868 కు కాల్ చేయండి.",
+                "ta": "என்னிடம் அதற்கான தகவல் இல்லை. சுகன்யா சம்ரித்தி திட்டம் பற்றி மட்டுமே என்னால் உதவ முடியும். உதவிக்கு இந்தியா போஸ்ட் 1800-266-6868 ஐ அழைக்கவும்.",
+                "hi": "मेरे पास इसके बारे में सत्यापित जानकारी नहीं है। मैं केवल सुकन्या समृद्धि योजना के बारे में मदद कर सकती हूँ। सहायता के लिए इंडिया पोस्ट 1800-266-6868 पर संपर्क करें।",
+                "en": "I do not have verified government information about that. I can only guide you on the Sukanya Samriddhi Yojana scheme. For official queries, contact India Post helpline at 1800-266-6868."
+            }
+            explanations = {
+                "te": "కేవలం ఆడపిల్లల సుకున్య సమృద్ధి ప్రభుత్వ పొదుపు పథకానికి సంబంధించిన ధృవీకరించబడిన వివరాలు మాత్రమే ఇక్కడ అందుబాటులో ఉన్నాయి.",
+                "ta": "சுகன்யா சம்ரித்தி அரசு திட்டம் தொடர்பான சரிபார்க்கப்பட்ட தகவல்கள் மட்டுமே இங்கு கிடைக்கும்.",
+                "hi": "यहाँ केवल सुकन्या समृद्धि सरकारी योजना से संबंधित सत्यापित जानकारी उपलब्ध है।",
+                "en": "I only answer questions from verified government records for girl child schemes."
+            }
+            return AssistantResponse(
+                reply=replies.get(lang, replies["en"]),
+                intent="unrelated_query",
+                needs_clarification=False,
+                question=None,
+                eligible="unknown",
+                explanation=explanations.get(lang, explanations["en"]),
                 documents=[],
                 steps=[],
                 next_action=next_act,

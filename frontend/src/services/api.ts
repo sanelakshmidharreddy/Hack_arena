@@ -273,77 +273,213 @@ export async function getAvailableVoices(lang: LanguageCode): Promise<VoiceOptio
 function getFallbackResponse(message: string, lang: LanguageCode): AssistantResponse {
   const lower = message.toLowerCase().trim();
 
-  // Pattern INELIGIBLE - checked FIRST so 'no' or 'older than 10' never shows eligible!
-  if (
-    lower.includes('no') ||
-    lower.includes('older') ||
-    lower.includes('కాదు') ||
-    lower.includes('దాటింది') ||
-    lower.includes('పెద్ద') ||
-    lower.includes('లేదు') ||
-    lower.includes('இல்லை') ||
-    lower.includes('नहीं') ||
-    lower.includes('अधिक') ||
-    lower.includes('11') ||
-    lower.includes('12') ||
-    lower.includes('13') ||
-    lower.includes('14')
-  ) {
+  // 1. Pattern INELIGIBLE - checked FIRST
+  const ineligibleSignals = [
+    'older than 10', 'older', 'not eligible', 'not_eligible', 'above 10', 'more than 10',
+    'కాదు', 'దాటింది', 'పెద్ద', 'లేదు', 'இல்லை', '10 வயதுக்கு மேல்',
+    'नहीं', 'अधिक', '11', '12', '13', '14', '15', '16', '17', '18'
+  ];
+  const positiveSignals = ['yes', 'eligible', 'అవును', 'ஆம்', 'हाँ', 'under 10', 'below 10'];
+  if (ineligibleSignals.some((s) => lower.includes(s)) && !positiveSignals.some((p) => lower.includes(p))) {
+    const ineligiblePath = DEMO_PATHS.find((d) => d.id === 'eligible_no');
+    if (ineligiblePath) return ineligiblePath.response[lang];
+  }
+  if (lower === 'no' || lower.startsWith('no,') || lower.startsWith('no ')) {
     const ineligiblePath = DEMO_PATHS.find((d) => d.id === 'eligible_no');
     if (ineligiblePath) return ineligiblePath.response[lang];
   }
 
-  // Pattern ELIGIBLE
+  // 2. Simplification / don't understand
   if (
-    lower.includes('yes') ||
-    lower.includes('7') ||
-    lower.includes('8') ||
-    lower.includes('5') ||
-    lower.includes('6') ||
-    lower.includes('9') ||
-    lower.includes('10') ||
-    lower.includes('అవును') ||
-    lower.includes('ஆம்') ||
-    lower.includes('हाँ') ||
-    lower.includes('eligible') ||
-    lower.includes('అర్హత')
+    lower.includes('understand') ||
+    lower.includes('simple') ||
+    lower.includes('clarify') ||
+    lower.includes('explain') ||
+    lower.includes('easy') ||
+    lower.includes('అర్థం కాలేదు') ||
+    lower.includes('సులభం') ||
+    lower.includes('పుரியவில்லை') ||
+    lower.includes('எளிமை') ||
+    lower.includes('समझ नहीं') ||
+    lower.includes('सरल')
   ) {
-    const eligiblePath = DEMO_PATHS.find((d) => d.id === 'eligible_yes');
-    if (eligiblePath) return eligiblePath.response[lang];
+    const simPath = DEMO_PATHS.find((d) => d.id === 'explain_simply');
+    if (simPath) return simPath.response[lang];
   }
 
-  // Pattern Documents
+  // 3. Documents
   if (
     lower.includes('document') ||
     lower.includes('paper') ||
-    lower.includes('కాగితాలు') ||
+    lower.includes('certificate') ||
+    lower.includes('birth') ||
+    lower.includes('aadhaar') ||
+    lower.includes('photo') ||
+    lower.includes('proof') ||
+    lower.includes('doc') ||
+    lower.includes('కాగిత') ||
     lower.includes('సర్టిఫికెట్') ||
-    lower.includes('ஆவணங்கள்') ||
+    lower.includes('ఆధార్') ||
+    lower.includes('ఫోటో') ||
+    lower.includes('బర్త్') ||
+    lower.includes('ஆவண') ||
     lower.includes('சான்றிதழ்') ||
+    lower.includes('புகைப்பட') ||
+    lower.includes('ஆதார்') ||
+    lower.includes('பிறப்பு') ||
+    lower.includes('दस्तावेज') ||
     lower.includes('कागजात') ||
-    lower.includes('दस्तावेज')
+    lower.includes('कागज') ||
+    lower.includes('प्रमाण') ||
+    lower.includes('आधार') ||
+    lower.includes('फोटो') ||
+    lower.includes('जन्म')
   ) {
     const docPath = DEMO_PATHS.find((d) => d.id === 'documents_query');
     if (docPath) return docPath.response[lang];
   }
 
-  // Pattern Where to go
+  // 4. Where to go / how to apply
   if (
     lower.includes('where') ||
     lower.includes('go') ||
     lower.includes('apply') ||
+    lower.includes('procedure') ||
+    lower.includes('process') ||
+    lower.includes('office') ||
+    lower.includes('bank') ||
+    lower.includes('submit') ||
+    lower.includes('register') ||
+    lower.includes('form') ||
     lower.includes('పోస్టాఫీస్') ||
     lower.includes('ఎక్కడికి') ||
     lower.includes('వెళ్లాలి') ||
+    lower.includes('దరఖాస్తు') ||
+    lower.includes('ఎలా') ||
     lower.includes('எங்கு') ||
     lower.includes('செல்ல') ||
+    lower.includes('விண்ணப்ப') ||
+    lower.includes('தபால்') ||
+    lower.includes('எப்படி') ||
     lower.includes('कहाँ') ||
-    lower.includes('जाना')
+    lower.includes('जाना') ||
+    lower.includes('आवेदन') ||
+    lower.includes('डाकघर') ||
+    lower.includes('कैसे')
   ) {
     const procPath = DEMO_PATHS.find((d) => d.id === 'how_to_proceed');
     if (procPath) return procPath.response[lang];
   }
 
-  // Default to introductory scheme guidance
+  // 5. Money / payment / fees / deposit limits
+  if (
+    lower.includes('money') ||
+    lower.includes('pay') ||
+    lower.includes('fee') ||
+    lower.includes('cost') ||
+    lower.includes('charge') ||
+    lower.includes('amount') ||
+    lower.includes('rupee') ||
+    lower.includes('rs') ||
+    lower.includes('₹') ||
+    lower.includes('deposit') ||
+    lower.includes('minimum') ||
+    lower.includes('maximum') ||
+    lower.includes('how much') ||
+    lower.includes('250') ||
+    lower.includes('1,50,000') ||
+    lower.includes('150000') ||
+    lower.includes('డబ్బు') ||
+    lower.includes('ఖర్చు') ||
+    lower.includes('రూపాయ') ||
+    lower.includes('కట్టాలి') ||
+    lower.includes('ఎంత') ||
+    lower.includes('பணம்') ||
+    lower.includes('எவ்வளவு') ||
+    lower.includes('கட்டணம்') ||
+    lower.includes('செலுத்த') ||
+    lower.includes('पैसे') ||
+    lower.includes('कितना') ||
+    lower.includes('फीस') ||
+    lower.includes('जमा') ||
+    lower.includes('रुपये')
+  ) {
+    const depPath = DEMO_PATHS.find((d) => d.id === 'deposit_limits');
+    if (depPath) return depPath.response[lang];
+  }
+
+  // 6. Interest rate
+  if (
+    lower.includes('interest') ||
+    lower.includes('rate') ||
+    lower.includes('8.2') ||
+    lower.includes('%') ||
+    lower.includes('percent') ||
+    lower.includes('profit') ||
+    lower.includes('వడ్డీ') ||
+    lower.includes('శాతం') ||
+    lower.includes('வட்டி') ||
+    lower.includes('ब्याज')
+  ) {
+    const intPath = DEMO_PATHS.find((d) => d.id === 'interest_rate');
+    if (intPath) return intPath.response[lang];
+  }
+
+  // 7. Pattern ELIGIBLE YES
+  if (
+    lower.includes('yes') ||
+    lower.includes('eligible') ||
+    lower.includes('అవును') ||
+    lower.includes('అర్హత') ||
+    lower.includes('ஆம்') ||
+    lower.includes('हाँ') ||
+    ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'].some((a) => lower.includes(a + ' year') || lower.includes(a + ' ఏళ్ల') || lower.includes(a + ' வயது') || lower.includes(a + ' साल'))
+  ) {
+    const eligiblePath = DEMO_PATHS.find((d) => d.id === 'eligible_yes');
+    if (eligiblePath) return eligiblePath.response[lang];
+  }
+
+  // 8. Greetings / help
+  if (
+    (lower.includes('hi') ||
+      lower.includes('hello') ||
+      lower.includes('namaste') ||
+      lower.includes('vanakkam') ||
+      lower.includes('help') ||
+      lower.includes('guide me') ||
+      lower.includes('start') ||
+      lower.includes('సహాయం') ||
+      lower.includes('నమస్కారం') ||
+      lower.includes('உதவி') ||
+      lower.includes('வணக்கம்') ||
+      lower.includes('मदद') ||
+      lower.includes('नमस्ते')) &&
+    lower.split(' ').length <= 4
+  ) {
+    return DEMO_PATHS[0].response[lang];
+  }
+
+  // 9. Scheme keywords without specific subtopic
+  if (
+    lower.includes('sukanya') ||
+    lower.includes('ssy') ||
+    lower.includes('samriddhi') ||
+    lower.includes('scheme') ||
+    lower.includes('daughter') ||
+    lower.includes('girl') ||
+    lower.includes('పాప') ||
+    lower.includes('మగ') ||
+    lower.includes('மகள்') ||
+    lower.includes('பெண்') ||
+    lower.includes('बेटी') ||
+    lower.includes('योजना')
+  ) {
+    return DEMO_PATHS[0].response[lang];
+  }
+
+  // 10. Default for any unrelated question
+  const unrelatedPath = DEMO_PATHS.find((d) => d.id === 'unrelated');
+  if (unrelatedPath) return unrelatedPath.response[lang];
+
   return DEMO_PATHS[0].response[lang];
 }
