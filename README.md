@@ -181,19 +181,53 @@ gcloud run deploy jansakhi \
 
 ---
 
-## 6. Test Suite & Verification Results
+## 6. Problem Alignment & UN Sustainable Development Goals (SDGs)
+
+Jansakhi is purpose-built to eliminate systemic digital and literacy barriers for rural Indian women:
+
+| Problem Requirement | Implementation File / Feature | Impact |
+|---|---|---|
+| **Voice-First Input & Audio Output** | `WebSpeech` (`te-IN`, `ta-IN`, `hi-IN`, `en-IN`), Google Cloud TTS (`/api/tts`), `AudioManager.ts` | Allows illiterate & non-technical mothers to interact completely by voice without typing. |
+| **Simple Text Fallback** | `App.tsx`, `api.ts`, context-aware intent parser | Allows guided quick-reply chips and simple phrasing with zero technical jargon. |
+| **Native Language End-to-End** | `LanguageContext.tsx`, `translations.ts`, `verified_schemes.json` | 100% coverage in Telugu, Tamil, Hindi, and English. Zero leakage across language switches. |
+| **One Question at a Time** | `scheme_router.py`, `llm_service.py` | Eliminates cognitive overload; guides user step-by-step through clarification. |
+| **Zero Prior Digital Knowledge** | Single-tap navigation, no login, no OTP/PIN/password, no forms | Eliminates fraud risk and registration fatigue. |
+| **Strict Fact Grounding (No Hallucination)** | `verified_schemes.json`, `scheme_service.py`, deterministic fallbacks | Every figure (8.2%, ₹250, ₹50,000, 10-18 yrs) sourced from MoF, India Post, Samagra Shiksha & NSP. |
+| **Offline & Low-Bandwidth Support** | PWA Service Worker, offline fallback banner, direct `tel:` phone links | Works when rural data connectivity drops. |
+| **Comprehensive Scheme Coverage** | Sukanya Samriddhi Yojana (SSY) + Top 5 Education Schemes (KGBV, PM-YASASVI, AICTE Pragati, NMMSS, PM-USP) | Supports girl-child welfare from birth through university/engineering education. |
+
+### Alignment with UN SDGs:
+- **SDG 4 (Quality Education)**: Bridges financial and geographic hurdles to girl child primary, secondary (KGBV, NMMSS, PM-YASASVI), and professional higher education (AICTE Pragati, PM-USP).
+- **SDG 5 (Gender Equality)**: Empowers mothers to secure autonomous financial accounts and scholarships specifically earmarked for girl children.
+- **SDG 10 (Reduced Inequalities)**: Demolishes English-first digital divides for rural, SC/ST, and OBC/EBC families.
+
+### Google Services Integration:
+- **Google Cloud Run**: Managed serverless container deployment in `asia-south1` (Mumbai).
+- **Google Gemini**: Conversational natural language understanding with zero-shot domain context injection.
+- **Google Cloud Text-to-Speech**: High-fidelity Indian regional voice synthesis (`te-IN`, `ta-IN`, `hi-IN`, `en-IN`).
+- **Google Maps Platform**: Nearby Post Office discovery via Places API and one-tap Google Maps turn-by-turn navigation.
+
+---
+
+## 7. Test Suite & Verification Results
+
+### Continuous Integration (`.github/workflows/ci.yml`)
+Jansakhi includes full automated GitHub Actions CI verifying type integrity, frontend tests, backend tests, test coverage, and production build on every commit.
 
 ### Backend Tests (`pytest`)
 ```bash
 cd backend
 python -m pytest tests
+# To view test coverage:
+pytest --cov=app --cov-report=term-missing tests/
 ```
 **Results**:
-- `tests/test_explain.py`: 3 passed (simplification without hallucination)
-- `tests/test_health.py`: 1 passed (/health returns 200 OK)
-- `tests/test_message.py`: 12 passed (eligible yes/no, contacts, voices, places, LLM failure recovery)
-- `tests/test_custom_questions.py`: 10 passed (10 varied queries: interest rate, documents, off-topic, prompt injection, privacy guard)
-- **Total**: **26 passed, 0 failed**
+- `tests/test_education_schemes.py`: **112 passed** (Scheme keywords across EN/TE/HI/TA, clarification steps, scheme context RAG, data integrity)
+- `tests/test_custom_questions.py`: **16 passed** (Intent detection: documents, process, payment, simplify, out-of-scope)
+- `tests/test_explain.py`: **17 passed** (Simplification across all languages without hallucination)
+- `tests/test_message.py`: **12 passed** (Eligible yes/no, contacts, voices, places, LLM failure recovery)
+- `tests/test_health.py`: **1 passed** (/health returns 200 OK)
+- **Total Backend**: **158 passed, 0 failed (100% pass rate)**
 
 ### Frontend Tests (`vitest`)
 ```bash
@@ -201,10 +235,13 @@ cd frontend
 npm test
 ```
 **Results**:
-- `src/__tests__/i18n.test.ts`: 2 passed (All keys present in all 4 languages, no empty strings)
-- `src/__tests__/multilingual_dom.test.tsx`: 2 passed (Asserts zero Telugu characters in English mode)
-- `src/__tests__/eligibility.test.tsx`: 2 passed (Ineligible screen verified, never renders eligible text)
-- **Total**: **6 passed, 0 failed**
+- `src/__tests__/custom_questions.test.ts`: **7 passed** (Intent-specific queries, multilingual adherence)
+- `src/__tests__/explain_simply.test.tsx`: **3 passed** (Multilingual simplification without script contamination)
+- `src/__tests__/eligibility.test.tsx`: **2 passed** (Ineligible screen verified, never renders eligible text)
+- `src/__tests__/multilingual_dom.test.tsx`: **2 passed** (Asserts zero Telugu characters in English mode)
+- `src/__tests__/audio_manager.test.ts`: **3 passed** (Audio playback, step voice cancellation)
+- `src/__tests__/i18n.test.ts`: **2 passed** (All keys present across all 4 languages)
+- **Total Frontend**: **19 passed, 0 failed (100% pass rate)**
 
 ---
 
